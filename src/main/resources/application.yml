@@ -1,0 +1,24 @@
+server:
+  port: 9000
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://admin:CE0980uk@cluster0-xidgh.gcp.mongodb.net/test?retryWrites=true&w=majority
+  main:
+    allow-bean-definition-overriding: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth/realms/master
+
+#security:
+#  oauth2:
+#    resource:
+#      id: service
+#      token-info-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/token/introspect
+#      user-info-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/userinfo
+#      jwt:
+#        key-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/certs
+#
