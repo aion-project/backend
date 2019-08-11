@@ -26,7 +26,9 @@ class UserService {
     }
 
     fun getAll(): Flux<User> {
-        return Flux.fromIterable(realm.users().list()).map { User(it) }
+        return Flux.fromIterable(realm.users().list()).map {
+            User(it, realm.users().get(it.id).roles().realmLevel().listEffective())
+        }
     }
 
     fun create(user: Mono<User>): Mono<Int> {
