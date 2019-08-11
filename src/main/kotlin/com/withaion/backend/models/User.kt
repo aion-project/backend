@@ -1,14 +1,22 @@
 package com.withaion.backend.models
 
-import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.mapping.Document
+import org.keycloak.representations.idm.UserRepresentation
 
-@Document(collection = "user")
-class User(
-        @Id var id: String?,
+data class User(
+        val id: String,
         val username: String,
-        val firstname: String,
-        val lastname: String,
-        val email: String,
-        val password: String
-)
+        val firstName: String,
+        val lastName: String,
+        val email: String
+) {
+    constructor(user: UserRepresentation) : this(user.id, user.username, user.firstName, user.lastName, user.email)
+
+    fun toUserRepresentation(): UserRepresentation {
+        val user = UserRepresentation()
+        user.username = username
+        user.firstName = firstName
+        user.lastName = lastName
+        user.email = email
+        return user
+    }
+}

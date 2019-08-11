@@ -12,13 +12,3 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://localhost:8080/auth/realms/master
-
-#security:
-#  oauth2:
-#    resource:
-#      id: service
-#      token-info-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/token/introspect
-#      user-info-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/userinfo
-#      jwt:
-#        key-uri: http://localhost:8080/auth/realms/master/protocol/openid-connect/certs
-#
