@@ -1,15 +1,24 @@
 package com.withaion.backend.models
 
+import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 
 data class User(
-        val id: String,
-        val username: String,
-        val firstName: String,
-        val lastName: String,
-        val email: String
+        val id: String?,
+        val username: String?,
+        val firstName: String?,
+        val lastName: String?,
+        val email: String?,
+        val roles: List<String>?
 ) {
-    constructor(user: UserRepresentation) : this(user.id, user.username, user.firstName, user.lastName, user.email)
+    constructor(user: UserRepresentation, roles: List<RoleRepresentation>? = null) : this(
+            user.id,
+            user.username,
+            user.firstName,
+            user.lastName,
+            user.email,
+            roles?.map { it.name }
+    )
 
     fun toUserRepresentation(): UserRepresentation {
         val user = UserRepresentation()

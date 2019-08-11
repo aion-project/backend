@@ -20,7 +20,9 @@ class UserService {
     private val realm = keycloak.realm("master")
 
     fun get(id: String): Mono<User> {
-        return Mono.fromCallable { realm.users().get(id) }.map { it.toRepresentation() }.map { User(it) }
+        return Mono.fromCallable { realm.users().get(id) }.map {
+            User(it.toRepresentation(), it.roles().realmLevel().listEffective())
+        }
     }
 
     fun getAll(): Flux<User> {
@@ -31,17 +33,18 @@ class UserService {
         return user.map {
             realm.users().create(it.toUserRepresentation())
         }.map { it.status }
+                .doOnError { println(it.message) }
     }
 
-    fun update(user: Mono<User>): Mono<Int> {
+    fun update(id: String, user: Mono<User>): Mono<Int> {
         return user.map {
-            realm.users().get(it.id).update(it.toUserRepresentation())
+            realm.users().get(id).update(it.toUserRepresentation())
             200
         }
     }
 
-    fun delete(id: Mono<String>): Mono<Int> {
-        return id.map {
+    fun delete(id: String): Mono<Int> {
+        return Mono.just(id).map {
             realm.users().delete(it)
         }.map { it.status }
     }
