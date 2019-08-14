@@ -3,6 +3,7 @@ package com.withaion.backend.services
 import com.withaion.backend.models.Role
 import com.withaion.backend.models.User
 import org.keycloak.admin.client.Keycloak
+import org.keycloak.representations.idm.CredentialRepresentation
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -37,7 +38,16 @@ class KeycloakService(
 
     fun createUser(user: Mono<User>): Mono<Int> {
         return user.map {
-            realm.users().create(it.toUserRepresentation())
+            val response = realm.users().create(it.toUserRepresentation())
+            if (response.status in 200..299 && !it.password.isNullOrBlank()) {
+                val newUserId = realm.users().search(it.username).firstOrNull()?.id
+                val newCredentials = CredentialRepresentation()
+                newCredentials.isTemporary = false
+                newCredentials.type = CredentialRepresentation.PASSWORD
+                newCredentials.value = it.password
+                realm.users().get(newUserId).resetPassword(newCredentials)
+            }
+            response
         }.map { it.status }
                 .doOnError { println(it.message) }
     }

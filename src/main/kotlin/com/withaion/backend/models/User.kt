@@ -9,7 +9,8 @@ data class User(
         val firstName: String?,
         val lastName: String?,
         val email: String?,
-        val roles: List<String>?
+        val roles: List<String>?,
+        val password: String? = null
 ) {
     constructor(user: UserRepresentation, roles: List<RoleRepresentation>? = null) : this(
             user.id,
@@ -26,6 +27,7 @@ data class User(
         user.firstName = firstName
         user.lastName = lastName
         user.email = email
+        user.isEnabled = true
         return user
     }
 }
