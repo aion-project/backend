@@ -1,6 +1,7 @@
 package com.withaion.backend.controllers
 
-import com.withaion.backend.dto.Response
+import com.withaion.backend.dto.ResponseDto
+import com.withaion.backend.dto.RoleDto
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.User
 import com.withaion.backend.services.KeycloakService
@@ -36,28 +37,32 @@ class UserController(private val keycloakService: KeycloakService) {
     }
 
     @PostMapping
-    fun create(@RequestBody user: Mono<User>): Mono<Response> {
+    fun create(@RequestBody user: Mono<User>): Mono<ResponseDto> {
         return keycloakService.createUser(user).map { "User created successfully".toResponse() }
     }
 
     @PutMapping("/{id}")
-    fun update(@PathVariable("id") id: String, @RequestBody user: Mono<User>): Mono<Response> {
+    fun update(@PathVariable("id") id: String, @RequestBody user: Mono<User>): Mono<ResponseDto> {
         return keycloakService.updateUser(id, user).map { "User updated successfully".toResponse() }
     }
 
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable("id") id: String): Mono<Response> {
+    fun delete(@PathVariable("id") id: String): Mono<ResponseDto> {
         return keycloakService.deleteUser(id).map { "User deleted successfully".toResponse() }
     }
 
-    @PostMapping("/{userId}/addRole/{roleName}")
-    fun addRole(@PathVariable("userId") userId: String, @PathVariable("roleName") roleName: String): Mono<Response> {
-        return keycloakService.addRole(userId, roleName).map { "Role added successfully".toResponse() }
+    @PostMapping("/{userId}/addRole")
+    fun addRole(@PathVariable("userId") userId: String, @RequestBody role: Mono<RoleDto>): Mono<ResponseDto> {
+        return role.flatMap {
+            keycloakService.addRole(userId, it.roleName).map { "Role added successfully".toResponse() }
+        }
     }
 
-    @PostMapping("/{userId}/removeRole/{roleName}")
-    fun removeRole(@PathVariable("userId") userId: String, @PathVariable("roleName") roleName: String): Mono<Response> {
-        return keycloakService.removeRole(userId, roleName).map { "Role removed successfully".toResponse() }
+    @PostMapping("/{userId}/removeRole")
+    fun removeRole(@PathVariable("userId") userId: String, @RequestBody role: Mono<RoleDto>): Mono<ResponseDto> {
+        return role.flatMap {
+            keycloakService.removeRole(userId, it.roleName).map { "Role removed successfully".toResponse() }
+        }
     }
 
 }

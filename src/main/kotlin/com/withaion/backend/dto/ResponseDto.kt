@@ -1,6 +1,6 @@
 package com.withaion.backend.dto
 
-data class Response(
+data class ResponseDto(
         val success: Boolean = true,
         val msg: String
 )
