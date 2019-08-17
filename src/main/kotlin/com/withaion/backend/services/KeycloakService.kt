@@ -31,9 +31,11 @@ class KeycloakService(
     }
 
     fun getUsers(): Flux<User> {
-        return Flux.fromIterable(realm.users().list()).map {
-            User(it, realm.users().get(it.id).roles().realmLevel().listEffective())
-        }
+        return Flux.fromIterable(realm.users().list())
+                .filter { !(it.attributes != null && it.attributes.containsKey("isHidden")) }
+                .map {
+                    User(it, realm.users().get(it.id).roles().realmLevel().listEffective())
+                }
     }
 
     fun createUser(user: Mono<User>): Mono<Int> {
@@ -66,7 +68,13 @@ class KeycloakService(
     }
 
     fun getRoles(): Flux<Role> {
-        return Flux.fromIterable(realm.roles().list()).map { Role(it) }
+        return Flux.fromIterable(realm.roles().list())
+                .filter {
+                    // Keycloak doesn't populate attributes of the role
+                    // Therefore filtering by hardcoding the role names
+                    it.name != "admin" && it.name != "create-realm"
+                }
+                .map { Role(it) }
     }
 
     fun addRole(userId: String, roleName: String): Mono<Unit> {
