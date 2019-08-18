@@ -1,7 +1,8 @@
 package com.withaion.backend.extensions
 
-import com.withaion.backend.dto.ResponseDto
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 
-fun String.toResponse(isSuccess: Boolean = true): ResponseDto {
-    return ResponseDto(isSuccess, this)
+fun String.toResponse(status: HttpStatus = HttpStatus.OK): ResponseEntity<String> {
+    return ResponseEntity(this, status)
 }

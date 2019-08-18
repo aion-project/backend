@@ -11,7 +11,8 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 class SecurityConfig {
     @Bean
     internal fun springWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-        http.authorizeExchange()
+        http.csrf().disable()
+                .authorizeExchange()
                 .anyExchange().authenticated()
                 .and()
                 .oauth2ResourceServer()

@@ -1,11 +1,12 @@
 package com.withaion.backend.controllers
 
 import com.withaion.backend.dto.EnableDto
-import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.dto.RoleDto
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.User
 import com.withaion.backend.services.KeycloakService
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -38,38 +39,38 @@ class UserController(private val keycloakService: KeycloakService) {
     }
 
     @PostMapping
-    fun create(@RequestBody user: Mono<User>): Mono<ResponseDto> {
-        return keycloakService.createUser(user).map { "User created successfully".toResponse() }
+    fun create(@RequestBody user: Mono<User>): Mono<ResponseEntity<String>> {
+        return keycloakService.createUser(user).map { "User created successfully".toResponse(HttpStatus.CREATED) }
     }
 
     @PutMapping("/{id}")
-    fun update(@PathVariable("id") id: String, @RequestBody user: Mono<User>): Mono<ResponseDto> {
-        return keycloakService.updateUser(id, user).map { "User updated successfully".toResponse() }
+    fun update(@PathVariable("id") id: String, @RequestBody user: Mono<User>): Mono<ResponseEntity<String>> {
+        return keycloakService.updateUser(id, user).map { "User updated successfully".toResponse(HttpStatus.CREATED) }
     }
 
     @DeleteMapping("/{id}")
-    fun delete(@PathVariable("id") id: String): Mono<ResponseDto> {
-        return keycloakService.deleteUser(id).map { "User deleted successfully".toResponse() }
+    fun delete(@PathVariable("id") id: String): Mono<ResponseEntity<String>> {
+        return keycloakService.deleteUser(id).map { "User deleted successfully".toResponse(HttpStatus.ACCEPTED) }
     }
 
     @PostMapping("/{userId}/setEnable")
-    fun setEnable(@PathVariable("userId") userId: String, @RequestBody enable: Mono<EnableDto>): Mono<ResponseDto> {
+    fun setEnable(@PathVariable("userId") userId: String, @RequestBody enable: Mono<EnableDto>): Mono<ResponseEntity<String>> {
         return enable.flatMap {
-            keycloakService.setEnable(userId, it.isEnable).map { "Enable state changed successfully".toResponse() }
+            keycloakService.setEnable(userId, it.isEnable).map { "Enable state changed successfully".toResponse(HttpStatus.ACCEPTED) }
         }
     }
 
     @PostMapping("/{userId}/addRole")
-    fun addRole(@PathVariable("userId") userId: String, @RequestBody role: Mono<RoleDto>): Mono<ResponseDto> {
+    fun addRole(@PathVariable("userId") userId: String, @RequestBody role: Mono<RoleDto>): Mono<ResponseEntity<String>> {
         return role.flatMap {
-            keycloakService.addRole(userId, it.roleName).map { "Role added successfully".toResponse() }
+            keycloakService.addRole(userId, it.roleName).map { "Role added successfully".toResponse(HttpStatus.CREATED) }
         }
     }
 
     @PostMapping("/{userId}/removeRole")
-    fun removeRole(@PathVariable("userId") userId: String, @RequestBody role: Mono<RoleDto>): Mono<ResponseDto> {
+    fun removeRole(@PathVariable("userId") userId: String, @RequestBody role: Mono<RoleDto>): Mono<ResponseEntity<String>> {
         return role.flatMap {
-            keycloakService.removeRole(userId, it.roleName).map { "Role removed successfully".toResponse() }
+            keycloakService.removeRole(userId, it.roleName).map { "Role removed successfully".toResponse(HttpStatus.ACCEPTED) }
         }
     }
 
