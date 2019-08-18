@@ -47,7 +47,7 @@ class UserControllerTests {
     fun tc_2_createUser() {
         webClient.post().uri("/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromObject(Companion.USER))
+                .body(BodyInserters.fromObject(USER))
                 .exchange()
                 .expectStatus().isCreated
                 .expectBody(String::class.java)
@@ -58,7 +58,7 @@ class UserControllerTests {
     fun tc_1_updateUser() {
         webClient.put().uri("/users/{id}", TEST_USER.id)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromObject(Companion.UPDATE_USER))
+                .body(BodyInserters.fromObject(UPDATE_USER))
                 .exchange()
                 .expectStatus().isCreated
                 .expectBody(String::class.java)
