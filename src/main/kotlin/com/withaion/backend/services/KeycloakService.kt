@@ -77,6 +77,15 @@ class KeycloakService(
                 .map { Role(it) }
     }
 
+    fun setEnable(userId: String, isEnable: Boolean): Mono<Unit> {
+        return Mono.fromCallable { realm.users().get(userId) }
+                .map {
+                    val representation = it.toRepresentation()
+                    representation.isEnabled = isEnable
+                    it.update(representation)
+                }
+    }
+
     fun addRole(userId: String, roleName: String): Mono<Unit> {
         return Mono.fromCallable { realm.roles().get(roleName).toRepresentation() }.map {
             realm.users().get(userId).roles().realmLevel().add(listOf(it))

@@ -1,5 +1,6 @@
 package com.withaion.backend.controllers
 
+import com.withaion.backend.dto.EnableDto
 import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.dto.RoleDto
 import com.withaion.backend.extensions.toResponse
@@ -49,6 +50,13 @@ class UserController(private val keycloakService: KeycloakService) {
     @DeleteMapping("/{id}")
     fun delete(@PathVariable("id") id: String): Mono<ResponseDto> {
         return keycloakService.deleteUser(id).map { "User deleted successfully".toResponse() }
+    }
+
+    @PostMapping("/{userId}/setEnable")
+    fun setEnable(@PathVariable("userId") userId: String, @RequestBody enable: Mono<EnableDto>): Mono<ResponseDto> {
+        return enable.flatMap {
+            keycloakService.setEnable(userId, it.isEnable).map { "Enable state changed successfully".toResponse() }
+        }
     }
 
     @PostMapping("/{userId}/addRole")
