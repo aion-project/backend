@@ -9,6 +9,7 @@ data class User(
         val firstName: String?,
         val lastName: String?,
         val email: String?,
+        val enabled: Boolean,
         val roles: List<String>?,
         val password: String? = null
 ) {
@@ -18,6 +19,7 @@ data class User(
             user.firstName,
             user.lastName,
             user.email,
+            user.isEnabled,
             roles?.map { it.name }
     )
 
@@ -27,7 +29,6 @@ data class User(
         user.firstName = firstName
         user.lastName = lastName
         user.email = email
-        user.isEnabled = true
         return user
     }
 }

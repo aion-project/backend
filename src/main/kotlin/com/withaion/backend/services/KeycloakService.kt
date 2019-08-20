@@ -40,7 +40,9 @@ class KeycloakService(
 
     fun createUser(user: Mono<User>): Mono<Int> {
         return user.map {
-            val response = realm.users().create(it.toUserRepresentation())
+            val userRepresentation = it.toUserRepresentation()
+            userRepresentation.isEnabled = true
+            val response = realm.users().create(userRepresentation)
             if (response.status in 200..299 && !it.password.isNullOrBlank()) {
                 val newUserId = realm.users().search(it.username).firstOrNull()?.id
                 val newCredentials = CredentialRepresentation()
