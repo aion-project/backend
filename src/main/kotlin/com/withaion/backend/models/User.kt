@@ -9,7 +9,7 @@ data class User(
         val firstName: String?,
         val lastName: String?,
         val email: String?,
-        val enabled: Boolean,
+        val enabled: Boolean = true,
         val roles: List<String>?,
         val password: String? = null
 ) {
