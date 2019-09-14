@@ -18,7 +18,7 @@ import org.springframework.web.reactive.function.BodyInserters
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @AutoConfigureWebTestClient
-class UserControllerTests {
+class UserHandlerTests {
 
     @Autowired
     private lateinit var webClient: WebTestClient
