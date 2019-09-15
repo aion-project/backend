@@ -1,9 +1,12 @@
 package com.withaion.backend.services
 
+import com.withaion.backend.dto.UserNewDto
+import com.withaion.backend.dto.UserUpdateDto
 import com.withaion.backend.models.Role
-import com.withaion.backend.models.User
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.CredentialRepresentation
+import org.keycloak.representations.idm.RoleRepresentation
+import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -24,26 +27,23 @@ class KeycloakService(
             "admin-cli")
     private val realm = keycloak.realm(realmName)
 
-    fun getUser(id: String): Mono<User> {
+    fun getUser(id: String): Mono<UserRepresentation> {
         return Mono.fromCallable { realm.users().get(id) }.map {
-            User(it.toRepresentation(), it.roles().realmLevel().listEffective())
+            it.toRepresentation()
         }
     }
 
-    fun getUsers(): Flux<User> {
+    fun getUsers(): Flux<UserRepresentation> {
         return Flux.fromIterable(realm.users().list())
                 .filter { !(it.attributes != null && it.attributes.containsKey("isHidden")) }
-                .map {
-                    User(it, realm.users().get(it.id).roles().realmLevel().listEffective())
-                }
     }
 
-    fun createUser(user: Mono<User>): Mono<Int> {
-        return user.map {
+    fun createUser(userNew: Mono<UserNewDto>): Mono<Int> {
+        return userNew.map {
             val userRepresentation = it.toUserRepresentation()
             userRepresentation.isEnabled = true
             val response = realm.users().create(userRepresentation)
-            if (response.status in 200..299 && !it.password.isNullOrBlank()) {
+            if (response.status in 200..299 && !it.password.isBlank()) {
                 val newUserId = realm.users().search(it.username).firstOrNull()?.id
                 val newCredentials = CredentialRepresentation()
                 newCredentials.isTemporary = false
@@ -56,7 +56,7 @@ class KeycloakService(
                 .doOnError { println(it.message) }
     }
 
-    fun updateUser(id: String, user: Mono<User>): Mono<Int> {
+    fun updateUser(id: String, user: Mono<UserUpdateDto>): Mono<Int> {
         return user.map {
             realm.users().get(id).update(it.toUserRepresentation())
             200
@@ -77,6 +77,10 @@ class KeycloakService(
                     it.name != "admin" && it.name != "create-realm"
                 }
                 .map { Role(it) }
+    }
+
+    fun getUserRoles(id: String): Mono<List<RoleRepresentation>> {
+        return Mono.fromCallable { realm.users().get(id).roles().realmLevel().listEffective() }
     }
 
     fun setEnable(userId: String, isEnable: Boolean): Mono<Unit> {

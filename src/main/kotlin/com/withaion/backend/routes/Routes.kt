@@ -9,11 +9,12 @@ val routerBeans = beans {
     bean {
         router {
             "/users".nest {
-                val handler = UserHandler(ref())
+                val handler = UserHandler(ref(), ref())
 
                 // Personal endpoints
                 GET("/me") { handler.getMe(it) }
                 PUT("/me") { handler.updateMe(it) }
+                POST("/activate") { handler.activate(it) }
 
                 // User endpoints
                 GET("/{id}") { handler.get(it) }
