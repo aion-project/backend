@@ -8,4 +8,8 @@ data class UserData(
         @Id val userId: String,
         val enabled: Boolean = false,
         val bio: String? = null
-)
+) {
+    companion object {
+        const val EMPTY_ID = "empty_id"
+    }
+}

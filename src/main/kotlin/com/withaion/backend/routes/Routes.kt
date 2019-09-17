@@ -13,7 +13,6 @@ val routerBeans = beans {
 
                 // Personal endpoints
                 GET("/me") { handler.getMe(it) }
-                PUT("/me") { handler.updateMe(it) }
                 POST("/activate") { handler.activate(it) }
 
                 // User endpoints

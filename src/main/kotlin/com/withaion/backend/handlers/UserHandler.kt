@@ -26,20 +26,6 @@ class UserHandler(
             User::class.java
     )
 
-    fun updateMe(request: ServerRequest) = ServerResponse.ok().body(
-            request.principal()
-                    .flatMap {
-                        request.bodyToMono(UserUpdateDto::class.java).flatMap { user ->
-                            Mono.zip(
-                                    keycloakService.updateUser(request.pathVariable("id"), Mono.just(user)),
-                                    userDataRepository.save(UserData(request.pathVariable("id"), true, user.bio))
-                            )
-                        }
-                    }
-                    .map { "User updated successfully".toResponse() },
-            ResponseDto::class.java
-    )
-
     fun get(request: ServerRequest) = ServerResponse.ok().body(
             fetchUser(request.pathVariable("id")),
             User::class.java
@@ -67,14 +53,23 @@ class UserHandler(
             request.bodyToMono(UserUpdateDto::class.java).flatMap { user ->
                 Mono.zip(
                         keycloakService.updateUser(request.pathVariable("id"), Mono.just(user)),
-                        userDataRepository.save(UserData(request.pathVariable("id"), true, user.bio))
+                        userDataRepository.findById(request.pathVariable("id")).defaultIfEmpty(UserData(UserData.EMPTY_ID)).flatMap {
+                            val updatedUserData = if (it.userId != UserData.EMPTY_ID)
+                                it.copy(bio = user.bio)
+                            else
+                                UserData(request.pathVariable("id"), bio = user.bio)
+                            userDataRepository.save(updatedUserData)
+                        }
                 )
             }.map { "User updated successfully".toResponse() },
             ResponseDto::class.java
     )
 
     fun delete(request: ServerRequest) = ServerResponse.accepted().body(
-            keycloakService.deleteUser(request.pathVariable("id")).map { "User deleted successfully".toResponse() },
+            Mono.zip(
+                    keycloakService.deleteUser(request.pathVariable("id")),
+                    userDataRepository.deleteById(request.pathVariable("id"))
+            ).map { "User deleted successfully".toResponse() },
             ResponseDto::class.java
     )
 
