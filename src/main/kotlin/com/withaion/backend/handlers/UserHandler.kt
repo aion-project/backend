@@ -43,13 +43,13 @@ class UserHandler(
             User::class.java
     )
 
-    fun create(request: ServerRequest) = ServerResponse.accepted().body(
+    fun create(request: ServerRequest) = ServerResponse.ok().body(
             keycloakService.createUser(request.bodyToMono(UserNewDto::class.java))
                     .map { "User created successfully".toResponse() },
             ResponseDto::class.java
     )
 
-    fun update(request: ServerRequest) = ServerResponse.accepted().body(
+    fun update(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(UserUpdateDto::class.java).flatMap { user ->
                 Mono.zip(
                         keycloakService.updateUser(request.pathVariable("id"), Mono.just(user)),
@@ -65,11 +65,12 @@ class UserHandler(
             ResponseDto::class.java
     )
 
-    fun delete(request: ServerRequest) = ServerResponse.accepted().body(
-            Mono.zip(
-                    keycloakService.deleteUser(request.pathVariable("id")),
-                    userDataRepository.deleteById(request.pathVariable("id"))
-            ).map { "User deleted successfully".toResponse() },
+    fun delete(request: ServerRequest) = ServerResponse.ok().body(
+            userDataRepository.deleteById(request.pathVariable("id")).then(
+                    keycloakService.deleteUser(request.pathVariable("id"))
+            ).map {
+                "User deleted successfully".toResponse()
+            },
             ResponseDto::class.java
     )
 
@@ -87,14 +88,14 @@ class UserHandler(
 
     )
 
-    fun addRole(request: ServerRequest) = ServerResponse.accepted().body(
+    fun addRole(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(RoleDto::class.java)
                     .flatMap { keycloakService.addRole(request.pathVariable("id"), it.roleName) }
                     .map { "Role added successfully".toResponse() },
             ResponseDto::class.java
     )
 
-    fun removeRole(request: ServerRequest) = ServerResponse.accepted().body(
+    fun removeRole(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(RoleDto::class.java)
                     .flatMap { keycloakService.removeRole(request.pathVariable("id"), it.roleName) }
                     .map { "Role removed successfully".toResponse() },
