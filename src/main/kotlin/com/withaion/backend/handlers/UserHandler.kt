@@ -21,20 +21,20 @@ class UserHandler(
     fun getMe(request: ServerRequest) = ServerResponse.ok().body(
             request.principal()
                     .flatMap { principle ->
-                        return@flatMap fetchUser(principle.name)
+                        return@flatMap findUserById(principle.name)
                     },
             User::class.java
     )
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
-            fetchUser(request.pathVariable("id")),
+            findUserById(request.pathVariable("id")),
             User::class.java
     )
 
     fun getAll() = ServerResponse.ok().body(
             keycloakService.getUsers().flatMap { user ->
                 return@flatMap Mono.zip(
-                        userDataRepository.findById(user.id).defaultIfEmpty(UserData(user.id, false)),
+                        findUserDataById(user.id),
                         keycloakService.getUserRoles(user.id)
                 ).map {
                     User(user, it.t1, it.t2)
@@ -102,18 +102,32 @@ class UserHandler(
             ResponseDto::class.java
     )
 
-    /*
-    * Utility functions
-    * */
-    private fun fetchUser(userId: String): Mono<User> {
+    // Utility Functions
+
+    /**
+     * Fetch user by merging data from multiple services for a given user id
+     *
+     * @param userId - User id of the requested user
+     * @return Mono of requested user
+     * */
+    private fun findUserById(userId: String): Mono<User> {
         return Mono.zip(
                 keycloakService.getUser(userId),
-                userDataRepository.findById(userId)
-                        .defaultIfEmpty(UserData(userId))
-                        .onErrorReturn(UserData(userId)),
+                findUserDataById(userId),
                 keycloakService.getUserRoles(userId)
         ).map {
             User(it.t1, it.t2, it.t3)
         }
+    }
+
+    /**
+     * Fetch user data from UserRepository for a given user id
+     *
+     * @param userId - User if of the requested user
+     * @return Mono of requested user data
+     * */
+    private fun findUserDataById(userId: String): Mono<UserData> {
+        return userDataRepository.findById(userId)
+                .defaultIfEmpty(UserData(userId))
     }
 }
