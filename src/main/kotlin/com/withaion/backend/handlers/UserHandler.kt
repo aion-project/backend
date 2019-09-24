@@ -1,21 +1,21 @@
 package com.withaion.backend.handlers
 
 import com.withaion.backend.data.UserDataRepository
-import com.withaion.backend.dto.ResponseDto
-import com.withaion.backend.dto.RoleDto
-import com.withaion.backend.dto.UserNewDto
-import com.withaion.backend.dto.UserUpdateDto
+import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.User
 import com.withaion.backend.models.UserData
 import com.withaion.backend.services.KeycloakService
+import com.withaion.backend.services.StorageService
+import org.springframework.util.Base64Utils
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 
 class UserHandler(
         private val keycloakService: KeycloakService,
-        private val userDataRepository: UserDataRepository
+        private val userDataRepository: UserDataRepository,
+        private val storageService: StorageService
 ) {
 
     fun getMe(request: ServerRequest) = ServerResponse.ok().body(
@@ -99,6 +99,16 @@ class UserHandler(
             request.bodyToMono(RoleDto::class.java)
                     .flatMap { keycloakService.removeRole(request.pathVariable("id"), it.roleName) }
                     .map { "Role removed successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun uploadAvatar(request: ServerRequest) = ServerResponse.ok().body(
+            request.principal().flatMap { principal ->
+                request.bodyToMono(FileUploadDto::class.java).map {
+                    val data = Base64Utils.decodeFromString(it.data)
+                    storageService.writeBlob("avatar/${principal.name}.${it.ext}", it.mime, data)
+                }.map { "Imaged uploaded successfully".toResponse() }
+            },
             ResponseDto::class.java
     )
 
