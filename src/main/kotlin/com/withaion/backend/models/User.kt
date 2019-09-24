@@ -12,6 +12,7 @@ data class User(
         val enabled: Boolean = true,
         val active: Boolean = true,
         val roles: List<String>?,
+        val avatarUrl: String?,
         val bio: String?
 ) {
     constructor(user: UserRepresentation, userData: UserData, roles: List<RoleRepresentation>? = null) : this(
@@ -23,6 +24,7 @@ data class User(
             user.isEnabled,
             userData.enabled,
             roles?.map { it.name },
+            userData.avatarUrl,
             userData.bio
     )
 }
