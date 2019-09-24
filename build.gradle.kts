@@ -23,6 +23,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.0.0.RELEASE")
 
+    implementation ("org.springframework.cloud:spring-cloud-gcp-starter-storage")
+
     implementation("org.keycloak:keycloak-admin-client:6.0.1")
     implementation("javax.ws.rs:javax.ws.rs-api:2.0")
     implementation("org.jboss.resteasy:resteasy-jaxrs:3.6.3.Final")
@@ -36,6 +38,12 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom ("org.springframework.cloud:spring-cloud-dependencies:Greenwich.SR3")
+    }
 }
 
 tasks.withType<KotlinCompile> {

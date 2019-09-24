@@ -13,6 +13,17 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/auth/realms/master
 
+# Apparently, Writing data to Google Cloud Storage blobs doesn't work. XD
+#
+# Replace the storage configs with following configs once it works.
+# protocol: gs
+# bucket: aion-storage
+#
+# Until local file system will be used as storage (LOL!)
+storage:
+  protocol: file
+  bucket: home/udesh/aion-storage
+
 keycloak:
   admin:
     realm: master
