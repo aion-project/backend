@@ -24,6 +24,7 @@ dependencies {
     implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.0.0.RELEASE")
 
     implementation ("org.springframework.cloud:spring-cloud-gcp-starter-storage")
+    implementation("net.coobird:thumbnailator:0.4.8")
 
     implementation("org.keycloak:keycloak-admin-client:6.0.1")
     implementation("javax.ws.rs:javax.ws.rs-api:2.0")

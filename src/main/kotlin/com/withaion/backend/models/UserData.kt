@@ -8,6 +8,7 @@ data class UserData(
         @Id val userId: String,
         val enabled: Boolean = false,
         val avatarUrl: String? = null,
+        val thumbnailUrl: String? = null,
         val bio: String? = null
 ) {
     companion object {

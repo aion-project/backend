@@ -105,13 +105,16 @@ class UserHandler(
     fun uploadAvatar(request: ServerRequest) = ServerResponse.ok().body(
             request.principal().flatMap { principal ->
                 request.bodyToMono(FileUploadDto::class.java).map {
-                    val filename = "avatar/${principal.name}.${it.ext}"
+                    val filename = "${principal.name}.${it.ext}"
                     val data = Base64Utils.decodeFromString(it.data)
-                    storageService.writeBlob(filename, it.mime, data)
+                    storageService.writeBlob("avatar/$filename", it.mime, data)
                     return@map filename
                 }.flatMap { filename ->
                     userDataRepository.findById(principal.name).flatMap { userData ->
-                        userDataRepository.save(userData.copy(avatarUrl = "/blob/$filename"))
+                        userDataRepository.save(userData.copy(
+                                avatarUrl = "/blob/avatar/original/$filename",
+                                thumbnailUrl = "/blob/avatar/thumbnail/$filename"
+                                ))
                     }
                 }.map { "Imaged uploaded successfully".toResponse() }
             },

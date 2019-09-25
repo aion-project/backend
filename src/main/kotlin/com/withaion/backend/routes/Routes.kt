@@ -10,7 +10,8 @@ val routerBeans = beans {
     bean {
         router {
             "/blob".nest {
-                val handler = BlobHandler(ref())
+                val handler = BlobHandler(ref(), ref())
+                GET("/avatar/{type}/{filename:.+}") { handler.getAvatar(it) }
                 GET("/{category}/{filename:.+}") { handler.getBlob(it) }
             }
             "/users".nest {

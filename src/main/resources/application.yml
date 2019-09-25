@@ -23,6 +23,9 @@ spring:
 storage:
   protocol: file
   bucket: home/udesh/aion-storage
+  thumbnail:
+    width: 256
+    height: 256
 
 keycloak:
   admin:
