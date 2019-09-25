@@ -33,11 +33,8 @@ class UserHandler(
 
     fun getAll() = ServerResponse.ok().body(
             keycloakService.getUsers().flatMap { user ->
-                return@flatMap Mono.zip(
-                        findUserDataById(user.id),
-                        keycloakService.getUserRoles(user.id)
-                ).map {
-                    User(user, it.t1, it.t2)
+                return@flatMap keycloakService.getUserRoles(user.id).map {
+                    User(user, it)
                 }
             },
             User::class.java
@@ -114,7 +111,7 @@ class UserHandler(
                         userDataRepository.save(userData.copy(
                                 avatarUrl = "/blob/avatar/original/$filename",
                                 thumbnailUrl = "/blob/avatar/thumbnail/$filename"
-                                ))
+                        ))
                     }
                 }.map { "Imaged uploaded successfully".toResponse() }
             },
