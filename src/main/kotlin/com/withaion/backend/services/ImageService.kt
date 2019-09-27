@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.util.*
 import javax.imageio.ImageIO
 
 @Service
@@ -19,6 +20,28 @@ class ImageService(
         @Value("\${storage.thumbnail.height}") private val thumbnailHeight: Int
 ) {
 
+    /**
+     * Store a image using given data in the given path with randomly generated file with given extension
+     *
+     * @param path - Path of the directory of the resource
+     * @param ext - Extension of the resource
+     * @param data - Image data to be stored
+     * @return Generated random file name string
+     * */
+    fun store(path: String, ext: String, data: ByteArray): String {
+        val filename = "${UUID.randomUUID()}.$ext"
+        storageService.writeBlob("$path/$filename", "image/jpeg", data)
+        return filename;
+    }
+
+    /**
+     * Retrieve image for the given filename of the given type in the given path
+     *
+     * @param path - Path of the directory of the resource
+     * @param filename - Filename of the resource to be retrieved
+     * @param type - Type of the resource to be retrieved
+     * @return Resource of the requested image
+     * */
     @Throws(ImageResizeException::class)
     fun resolve(path: String, filename: String, type: String): Resource {
         return if (!type.endsWith(ORIGINAL_TYPE)) {

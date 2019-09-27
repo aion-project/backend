@@ -5,8 +5,8 @@ import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.User
 import com.withaion.backend.models.UserData
+import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.KeycloakService
-import com.withaion.backend.services.StorageService
 import org.springframework.util.Base64Utils
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -15,14 +15,11 @@ import reactor.core.publisher.Mono
 class UserHandler(
         private val keycloakService: KeycloakService,
         private val userDataRepository: UserDataRepository,
-        private val storageService: StorageService
+        private val imageService: ImageService
 ) {
 
     fun getMe(request: ServerRequest) = ServerResponse.ok().body(
-            request.principal()
-                    .flatMap { principle ->
-                        return@flatMap findUserById(principle.name)
-                    },
+            request.principal().flatMap { findUserById(it.name) },
             User::class.java
     )
 
@@ -33,9 +30,8 @@ class UserHandler(
 
     fun getAll() = ServerResponse.ok().body(
             keycloakService.getUsers().flatMap { user ->
-                return@flatMap keycloakService.getUserRoles(user.id).map {
-                    User(user, it)
-                }
+                keycloakService.getUserRoles(user.id)
+                        .map { User(user, it) }
             },
             User::class.java
     )
@@ -50,37 +46,39 @@ class UserHandler(
             request.bodyToMono(UserUpdateDto::class.java).flatMap { user ->
                 Mono.zip(
                         keycloakService.updateUser(request.pathVariable("id"), Mono.just(user)),
-                        userDataRepository.findById(request.pathVariable("id")).defaultIfEmpty(UserData(UserData.EMPTY_ID)).flatMap {
-                            val updatedUserData = if (it.userId != UserData.EMPTY_ID)
-                                it.copy(bio = user.bio)
-                            else
-                                UserData(request.pathVariable("id"), bio = user.bio)
-                            userDataRepository.save(updatedUserData)
-                        }
+                        userDataRepository.findById(request.pathVariable("id"))
+                                .defaultIfEmpty(UserData(UserData.EMPTY_ID))
+                                .flatMap {
+                                    val updatedUserData = if (it.userId != UserData.EMPTY_ID)
+                                        it.copy(bio = user.bio)
+                                    else
+                                        UserData(request.pathVariable("id"), bio = user.bio)
+                                    userDataRepository.save(updatedUserData)
+                                }
                 )
             }.map { "User updated successfully".toResponse() },
             ResponseDto::class.java
     )
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
-            userDataRepository.deleteById(request.pathVariable("id")).then(
-                    keycloakService.deleteUser(request.pathVariable("id"))
-            ).map {
-                "User deleted successfully".toResponse()
-            },
+            userDataRepository.deleteById(request.pathVariable("id"))
+                    .then(keycloakService.deleteUser(request.pathVariable("id")))
+                    .map { "User deleted successfully".toResponse() },
             ResponseDto::class.java
     )
 
     fun setEnable(request: ServerRequest) = ServerResponse.ok().body(
-            keycloakService.setEnable(request.pathVariable("id"), request.pathVariable("isEnable").toBoolean())
-                    .map { "Enable state changed successfully".toResponse() },
+            keycloakService.setEnable(
+                    request.pathVariable("id"),
+                    request.pathVariable("isEnable").toBoolean()
+            ).map { "Enable state changed successfully".toResponse() },
             ResponseDto::class.java
     )
 
     fun activate(request: ServerRequest) = ServerResponse.ok().body(
-            request.principal().flatMap {
-                userDataRepository.save(UserData(it.name, true, null))
-            }.map { "Enable state changed successfully".toResponse() },
+            request.principal()
+                    .flatMap { userDataRepository.save(UserData(it.name, true, null)) }
+                    .map { "Enable state changed successfully".toResponse() },
             ResponseDto::class.java
 
     )
@@ -101,19 +99,18 @@ class UserHandler(
 
     fun uploadAvatar(request: ServerRequest) = ServerResponse.ok().body(
             request.principal().flatMap { principal ->
-                request.bodyToMono(FileUploadDto::class.java).map {
-                    val filename = "${principal.name}.${it.ext}"
-                    val data = Base64Utils.decodeFromString(it.data)
-                    storageService.writeBlob("avatar/$filename", it.mime, data)
-                    return@map filename
-                }.flatMap { filename ->
-                    userDataRepository.findById(principal.name).flatMap { userData ->
-                        userDataRepository.save(userData.copy(
-                                avatarUrl = "/blob/avatar/original/$filename",
-                                thumbnailUrl = "/blob/avatar/thumbnail/$filename"
-                        ))
-                    }
-                }.map { "Imaged uploaded successfully".toResponse() }
+                request.bodyToMono(FileUploadDto::class.java)
+                        .map {
+                            val data = Base64Utils.decodeFromString(it.data)
+                            return@map imageService.store("avatar", it.ext, data)
+                        }.flatMap { filename ->
+                            userDataRepository.findById(principal.name).flatMap { userData ->
+                                userDataRepository.save(userData.copy(
+                                        avatarUrl = "/blob/avatar/original/$filename",
+                                        thumbnailUrl = "/blob/avatar/thumbnail/$filename"
+                                ))
+                            }
+                        }.map { "Imaged uploaded successfully".toResponse() }
             },
             ResponseDto::class.java
     )

@@ -15,9 +15,10 @@ class BlobHandler(
 ) {
 
     fun getAvatar(request: ServerRequest) = ServerResponse.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + request.pathVariable("filename") + "\"")
-            .body(
+            .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + request.pathVariable("filename") + "\""
+            ).body(
                     Mono.fromCallable {
                         val type = request.pathVariable("type")
                         val filename = request.pathVariable("filename")
@@ -27,9 +28,10 @@ class BlobHandler(
             )
 
     fun getBlob(request: ServerRequest) = ServerResponse.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + request.pathVariable("filename") + "\"")
-            .body(
+            .header(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + request.pathVariable("filename") + "\""
+            ).body(
                     Mono.fromCallable {
                         val category = request.pathVariable("category")
                         val filename = request.pathVariable("filename")
