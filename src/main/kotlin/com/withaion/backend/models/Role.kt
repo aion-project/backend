@@ -1,11 +1,12 @@
 package com.withaion.backend.models
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import org.keycloak.representations.idm.RoleRepresentation
-import org.keycloak.representations.idm.UserRepresentation
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class Role(
-        val id: String?,
-        val name: String?,
+        val id: String,
+        val name: String,
         val description: String?
 ) {
     constructor(role: RoleRepresentation) : this(
