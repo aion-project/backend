@@ -2,11 +2,14 @@ package com.withaion.backend.handlers
 
 import com.withaion.backend.data.UserDataRepository
 import com.withaion.backend.dto.*
+import com.withaion.backend.exceptions.FieldConflictException
+import com.withaion.backend.exceptions.FieldRequiredException
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.User
 import com.withaion.backend.models.UserData
 import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.KeycloakService
+import org.springframework.http.HttpStatus
 import org.springframework.util.Base64Utils
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -36,11 +39,19 @@ class UserHandler(
             User::class.java
     )
 
-    fun create(request: ServerRequest) = ServerResponse.ok().body(
-            keycloakService.createUser(request.bodyToMono(UserNewDto::class.java))
-                    .map { "User created successfully".toResponse() },
-            ResponseDto::class.java
-    )
+    fun create(request: ServerRequest) = keycloakService.createUser(request.bodyToMono(UserNewDto::class.java))
+            .flatMap {
+                ServerResponse.ok().syncBody("User created successfully".toResponse())
+            }.onErrorResume {
+                if (it.message == null)
+                    ServerResponse.badRequest().syncBody("Unknown error.".toResponse())
+
+                when (it) {
+                    is FieldRequiredException -> ServerResponse.badRequest().syncBody(it.message!!.toResponse())
+                    is FieldConflictException -> ServerResponse.status(HttpStatus.CONFLICT).syncBody(it.message!!.toResponse())
+                    else -> ServerResponse.badRequest().syncBody(it.message!!.toResponse())
+                }
+            }
 
     fun update(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(UserUpdateDto::class.java).flatMap { user ->
@@ -144,3 +155,4 @@ class UserHandler(
                 .defaultIfEmpty(UserData(userId))
     }
 }
+

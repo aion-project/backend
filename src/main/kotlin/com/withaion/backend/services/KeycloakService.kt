@@ -1,16 +1,22 @@
 package com.withaion.backend.services
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.withaion.backend.dto.UserNewDto
 import com.withaion.backend.dto.UserUpdateDto
+import com.withaion.backend.exceptions.FieldConflictException
+import com.withaion.backend.exceptions.FieldRequiredException
 import com.withaion.backend.models.Role
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.RoleRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.io.ByteArrayInputStream
+
 
 @Service
 class KeycloakService(
@@ -38,22 +44,31 @@ class KeycloakService(
                 .filter { !(it.attributes != null && it.attributes.containsKey("isHidden")) }
     }
 
-    fun createUser(userNew: Mono<UserNewDto>): Mono<Int> {
+    fun createUser(userNew: Mono<UserNewDto>): Mono<Unit> {
         return userNew.map {
+            if (it.password.isBlank())
+                throw FieldRequiredException("Password should not be blank.")
+
             val userRepresentation = it.toUserRepresentation()
             userRepresentation.isEnabled = true
             val response = realm.users().create(userRepresentation)
-            if (response.status in 200..299 && !it.password.isBlank()) {
+            if (response.status in 200..299) {
                 val newUserId = realm.users().search(it.username).firstOrNull()?.id
                 val newCredentials = CredentialRepresentation()
                 newCredentials.isTemporary = false
                 newCredentials.type = CredentialRepresentation.PASSWORD
                 newCredentials.value = it.password
                 realm.users().get(newUserId).resetPassword(newCredentials)
+            } else {
+                if (response.status == HttpStatus.CONFLICT.value() && response.bufferEntity()) {
+                    val responseBytes = (response.entity as ByteArrayInputStream).readAllBytes()
+                    val errorEntity = ObjectMapper().readValue(responseBytes, Map::class.java)
+                    throw FieldConflictException(errorEntity["errorMessage"].toString())
+                } else {
+                    throw Exception("Unknown error.")
+                }
             }
-            response
-        }.map { it.status }
-                .doOnError { println(it.message) }
+        }
     }
 
     fun updateUser(id: String, user: Mono<UserUpdateDto>): Mono<Int> {
