@@ -23,7 +23,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.0.0.RELEASE")
 
-    implementation ("org.springframework.cloud:spring-cloud-gcp-starter-storage")
+//    TODO - Uncomment to integrate Google Storage once the plugin in works
+//    implementation ("org.springframework.cloud:spring-cloud-gcp-starter-storage")
     implementation("net.coobird:thumbnailator:0.4.8")
 
     implementation("org.keycloak:keycloak-admin-client:6.0.1")
