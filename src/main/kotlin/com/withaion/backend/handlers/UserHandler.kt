@@ -50,8 +50,8 @@ class UserHandler(
                 }
             }
 
-    fun update(request: ServerRequest) = ServerResponse.ok().body(
-            request.bodyToMono(UserUpdateDto::class.java).flatMap { user ->
+    fun update(request: ServerRequest) = request.bodyToMono(UserUpdateDto::class.java)
+            .flatMap { user ->
                 Mono.zip(
                         keycloakService.updateUser(request.pathVariable("id"), Mono.just(user)),
                         userDataRepository.findById(request.pathVariable("id"))
@@ -64,9 +64,13 @@ class UserHandler(
                                     userDataRepository.save(updatedUserData)
                                 }
                 )
-            }.map { "User updated successfully".toResponse() },
-            ResponseDto::class.java
-    )
+            }.flatMap { ServerResponse.ok().syncBody("User updated successfully".toResponse()) }
+            .onErrorResume {
+                when (it) {
+                    is FieldConflictException -> ServerResponse.status(HttpStatus.CONFLICT).syncBody(it.message.toResponse())
+                    else -> it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
+                }
+            }
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
             userDataRepository.deleteById(request.pathVariable("id"))

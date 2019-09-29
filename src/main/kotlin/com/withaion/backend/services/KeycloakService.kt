@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.io.ByteArrayInputStream
+import javax.ws.rs.ClientErrorException
 
 
 @Service
@@ -75,6 +76,14 @@ class KeycloakService(
         return user.map {
             realm.users().get(id).update(it.toUserRepresentation())
             200
+        }.onErrorMap {
+            if (it is ClientErrorException && it.response.status == HttpStatus.CONFLICT.value()) {
+                val responseBytes = (it.response.entity as ByteArrayInputStream).readAllBytes()
+                val errorEntity = ObjectMapper().readValue(responseBytes, Map::class.java)
+                throw FieldConflictException(errorEntity["errorMessage"].toString())
+            } else {
+                Exception("Unknown error")
+            }
         }
     }
 
