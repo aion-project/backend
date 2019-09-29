@@ -46,8 +46,8 @@ class KeycloakService(
 
     fun createUser(userNew: Mono<UserNewDto>): Mono<Unit> {
         return userNew.map {
-            if (it.password.isBlank())
-                throw FieldRequiredException("Password should not be blank.")
+            if (it.password.length < 8)
+                throw FieldRequiredException("Password should contain at least 8 characters")
 
             val userRepresentation = it.toUserRepresentation()
             userRepresentation.isEnabled = true
@@ -65,7 +65,7 @@ class KeycloakService(
                     val errorEntity = ObjectMapper().readValue(responseBytes, Map::class.java)
                     throw FieldConflictException(errorEntity["errorMessage"].toString())
                 } else {
-                    throw Exception("Unknown error.")
+                    throw Exception("Unknown error")
                 }
             }
         }

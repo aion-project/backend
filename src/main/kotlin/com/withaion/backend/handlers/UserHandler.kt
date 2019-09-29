@@ -43,13 +43,10 @@ class UserHandler(
             .flatMap {
                 ServerResponse.ok().syncBody("User created successfully".toResponse())
             }.onErrorResume {
-                if (it.message == null)
-                    ServerResponse.badRequest().syncBody("Unknown error.".toResponse())
-
                 when (it) {
-                    is FieldRequiredException -> ServerResponse.badRequest().syncBody(it.message!!.toResponse())
-                    is FieldConflictException -> ServerResponse.status(HttpStatus.CONFLICT).syncBody(it.message!!.toResponse())
-                    else -> ServerResponse.badRequest().syncBody(it.message!!.toResponse())
+                    is FieldRequiredException -> ServerResponse.badRequest().syncBody(it.message.toResponse())
+                    is FieldConflictException -> ServerResponse.status(HttpStatus.CONFLICT).syncBody(it.message.toResponse())
+                    else -> it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
                 }
             }
 
