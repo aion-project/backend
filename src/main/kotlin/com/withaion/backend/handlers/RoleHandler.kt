@@ -1,11 +1,10 @@
 package com.withaion.backend.handlers
 
-import com.withaion.backend.models.Role
-import com.withaion.backend.services.KeycloakService
 import org.springframework.web.reactive.function.server.ServerResponse
+import reactor.core.publisher.Mono
 
-class RoleHandler(private val keycloakService: KeycloakService) {
+class RoleHandler() {
 
-    fun getAll() = ServerResponse.ok().body(keycloakService.getRoles(), Role::class.java)
+    fun getAll() = ServerResponse.ok().syncBody(Mono.just("Not implemented"))
 
 }

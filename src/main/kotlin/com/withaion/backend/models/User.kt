@@ -1,48 +1,20 @@
 package com.withaion.backend.models
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.keycloak.representations.idm.RoleRepresentation
-import org.keycloak.representations.idm.UserRepresentation
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
 
+@Document(collection = "user")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class User(
-        val id: String,
-        val username: String,
+        @Id val id: String? = null,
         val firstName: String,
         val lastName: String,
         val email: String,
         val enabled: Boolean = true,
-        val active: Boolean?,
-        val roles: List<String>?,
-        val avatarUrl: String?,
-        val thumbnailUrl: String?,
-        val bio: String?
-) {
-    constructor(user: UserRepresentation, userData: UserData, roles: List<RoleRepresentation>? = null) : this(
-            user.id,
-            user.username,
-            user.firstName,
-            user.lastName,
-            user.email,
-            user.isEnabled,
-            userData.enabled,
-            roles?.map { it.name },
-            userData.avatarUrl,
-            userData.thumbnailUrl,
-            userData.bio
-    )
-
-    constructor(user: UserRepresentation, roles: List<RoleRepresentation>? = null) : this(
-            user.id,
-            user.username,
-            user.firstName,
-            user.lastName,
-            user.email,
-            user.isEnabled,
-            null,
-            roles?.map { it.name },
-            null,
-            null,
-            null
-    )
-}
+        val active: Boolean? = false,
+        val roles: List<Role>? = null,
+        val avatarUrl: String? = null,
+        val thumbnailUrl: String? = null,
+        val bio: String? = null
+)

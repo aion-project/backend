@@ -27,11 +27,8 @@ dependencies {
 //    implementation ("org.springframework.cloud:spring-cloud-gcp-starter-storage")
     implementation("net.coobird:thumbnailator:0.4.8")
 
-    implementation("org.keycloak:keycloak-admin-client:6.0.1")
-    implementation("javax.ws.rs:javax.ws.rs-api:2.0")
-    implementation("org.jboss.resteasy:resteasy-jaxrs:3.6.3.Final")
-    implementation("org.jboss.resteasy:resteasy-client:3.6.3.Final")
-    implementation("org.jboss.resteasy:resteasy-jackson2-provider:3.6.3.Final")
+    implementation ("com.okta.spring:okta-spring-boot-starter:1.0.0")
+    implementation ("com.okta.spring:okta-spring-sdk")
 
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 

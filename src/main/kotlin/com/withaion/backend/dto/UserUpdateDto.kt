@@ -1,6 +1,6 @@
 package com.withaion.backend.dto
 
-import org.keycloak.representations.idm.UserRepresentation
+import com.withaion.backend.models.User
 
 /**
  * DTO for user update requests
@@ -16,11 +16,20 @@ data class UserUpdateDto(
         val email: String?,
         val bio: String?
 ) {
-    fun toUserRepresentation(): UserRepresentation {
-        val user = UserRepresentation()
-        user.firstName = firstName
-        user.lastName = lastName
-        user.email = email
-        return user
+    fun toUpdatedUser(user: User): User {
+        var currentUser = user
+        firstName?.let {
+            currentUser = currentUser.copy(firstName = firstName)
+        }
+        lastName?.let {
+            currentUser = currentUser.copy(lastName = lastName)
+        }
+        email?.let {
+            currentUser = currentUser.copy(email = email)
+        }
+        bio?.let {
+            currentUser = currentUser.copy(bio = bio)
+        }
+        return currentUser;
     }
 }

@@ -2,7 +2,7 @@ package com.withaion.backend
 
 import com.mongodb.reactivestreams.client.MongoClient
 import com.mongodb.reactivestreams.client.MongoClients
-import com.withaion.backend.data.UserDataRepository
+import com.withaion.backend.data.UserRepository
 import com.withaion.backend.routes.routerBeans
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
 }
 
 @EnableReactiveMongoRepositories(
-        basePackageClasses = [UserDataRepository::class])
+        basePackageClasses = [UserRepository::class] )
 class MongoConfig : AbstractReactiveMongoConfiguration() {
 
     override fun getDatabaseName() = "aion"
