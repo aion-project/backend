@@ -100,8 +100,10 @@ class UserHandler(
     )
 
     fun activate(request: ServerRequest) = ServerResponse.ok().body(
-            userRepository.findById(request.pathVariable("id")).flatMap { user ->
-                userRepository.save(user.copy(active = true))
+            request.principal().flatMap {
+                userRepository.findByEmail(it.name).flatMap { user ->
+                    userRepository.save(user.copy(active = true))
+                }
             }.map { "Enable state changed successfully".toResponse() },
             ResponseDto::class.java
     )
