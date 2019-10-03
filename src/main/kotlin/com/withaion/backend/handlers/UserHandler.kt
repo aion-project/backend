@@ -88,21 +88,23 @@ class UserHandler(
             ResponseDto::class.java
     )
 
-//    fun setEnable(request: ServerRequest) = ServerResponse.ok().body(
-//            keycloakService.setEnable(
-//                    request.pathVariable("id"),
-//                    request.pathVariable("isEnable").toBoolean()
-//            ).map { "Enable state changed successfully".toResponse() },userDataRepository
-//            ResponseDto::class.java
-//    )
-//
-//    fun activate(request: ServerRequest) = ServerResponse.ok().body(
-//            request.principal()
-//                    .flatMap { userDataRepository.save(UserData(it.name, true, null)) }
-//                    .map { "Enable state changed successfully".toResponse() },
-//            ResponseDto::class.java
-//
-//    )
+    fun setEnable(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findById(request.pathVariable("id")).flatMap { user ->
+                val isEnable = request.pathVariable("isEnable").toBoolean()
+                Mono.zip(
+                        oktaService.setEnable(user.email, isEnable),
+                        userRepository.save(user.copy(enabled = isEnable))
+                )
+            }.map { "Enable state changed successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun activate(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findById(request.pathVariable("id")).flatMap { user ->
+                userRepository.save(user.copy(active = true))
+            }.map { "Enable state changed successfully".toResponse() },
+            ResponseDto::class.java
+    )
 
     fun addRole(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findById(request.pathVariable("id")).flatMap { user ->

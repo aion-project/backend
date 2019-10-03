@@ -53,6 +53,14 @@ class OktaService(
         }.thenReturn(true)
     }
 
+    fun setEnable(email: String, isEnable: Boolean): Mono<Boolean> {
+        return Mono.just(if (!isEnable) {
+            client.getUser(email).suspend()
+        } else {
+            client.getUser(email).unsuspend()
+        }).thenReturn(true)
+    }
+
     fun setRole(email: String, groupId: String): Mono<Boolean> {
         return Mono.fromCallable { client.getUser(email).addToGroup(groupId) }.thenReturn(true)
     }
