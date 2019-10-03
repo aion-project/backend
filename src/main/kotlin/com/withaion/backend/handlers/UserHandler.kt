@@ -1,10 +1,7 @@
 package com.withaion.backend.handlers
 
 import com.withaion.backend.data.UserRepository
-import com.withaion.backend.dto.FileUploadDto
-import com.withaion.backend.dto.ResponseDto
-import com.withaion.backend.dto.UserNewDto
-import com.withaion.backend.dto.UserUpdateDto
+import com.withaion.backend.dto.*
 import com.withaion.backend.exceptions.FieldConflictException
 import com.withaion.backend.exceptions.FieldRequiredException
 import com.withaion.backend.extensions.toResponse
@@ -24,12 +21,22 @@ class UserHandler(
 ) {
 
     fun getMe(request: ServerRequest) = ServerResponse.ok().body(
-            request.principal().flatMap { userRepository.findByEmail(it.name) },
+            request.principal().flatMap { principal ->
+                userRepository.findByEmail(principal.name).flatMap { user ->
+                    oktaService.getRoles(user.email).map {
+                        user.copy(roles = it)
+                    }
+                }
+            },
             User::class.java
     )
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
-            userRepository.findById(request.pathVariable("id")),
+            userRepository.findById(request.pathVariable("id")).flatMap { user ->
+                oktaService.getRoles(user.email).map {
+                    user.copy(roles = it)
+                }
+            },
             User::class.java
     )
 
@@ -74,7 +81,7 @@ class UserHandler(
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findById(request.pathVariable("id")).flatMap { user ->
                 Mono.zip(
-                        oktaService.deleteUser(user.email).thenReturn(true),
+                        oktaService.deleteUser(user.email),
                         userRepository.deleteById(user.id!!).thenReturn(true)
                 )
             }.map { "User deleted successfully".toResponse() },
@@ -96,20 +103,22 @@ class UserHandler(
 //            ResponseDto::class.java
 //
 //    )
-//
-//    fun addRole(request: ServerRequest) = ServerResponse.ok().body(
-//            request.bodyToMono(RoleDto::class.java)
-//                    .flatMap { keycloakService.addRole(request.pathVariable("id"), it.roleName) }
-//                    .map { "Role added successfully".toResponse() },
-//            ResponseDto::class.java
-//    )
-//
-//    fun removeRole(request: ServerRequest) = ServerResponse.ok().body(
-//            request.bodyToMono(RoleDto::class.java)
-//                    .flatMap { keycloakService.removeRole(request.pathVariable("id"), it.roleName) }
-//                    .map { "Role removed successfully".toResponse() },
-//            ResponseDto::class.java
-//    )
+
+    fun addRole(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findById(request.pathVariable("id")).flatMap { user ->
+                request.bodyToMono(RoleDto::class.java)
+                        .flatMap { oktaService.setRole(user.email, it.roleId) }
+            }.map { "Role added successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun removeRole(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findById(request.pathVariable("id")).flatMap { user ->
+                request.bodyToMono(RoleDto::class.java)
+                        .flatMap { oktaService.removeRole(user.email, it.roleId) }
+            }.map { "Role removed successfully".toResponse() },
+            ResponseDto::class.java
+    )
 
     fun uploadAvatar(request: ServerRequest) = ServerResponse.ok().body(
             request.principal().flatMap { principal ->

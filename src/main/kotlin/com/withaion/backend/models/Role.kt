@@ -1,13 +1,13 @@
 package com.withaion.backend.models
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.mapping.Document
+import com.okta.sdk.resource.group.Group
 
-@Document(collection = "role")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Role(
-        @Id val id: String,
+        val id: String,
         val name: String,
         val description: String?
-)
+) {
+    constructor(group: Group) : this(group.id, group.profile.name, group.profile.description)
+}

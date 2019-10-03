@@ -5,7 +5,9 @@ import com.okta.sdk.resource.user.User
 import com.okta.sdk.resource.user.UserBuilder
 import com.withaion.backend.dto.UserNewDto
 import com.withaion.backend.dto.UserUpdateDto
+import com.withaion.backend.models.Role
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
@@ -21,6 +23,7 @@ class OktaService(
             builder.setEmail(user.email)
             builder.setLogin(user.email)
             builder.setPassword(user.password.toCharArray())
+            builder.addGroup(getUserRole().id)
             builder.buildAndCreate(client)
         }
     }
@@ -42,12 +45,41 @@ class OktaService(
                 }
     }
 
-    fun deleteUser(email: String): Mono<Unit> {
+    fun deleteUser(email: String): Mono<Boolean> {
         return Mono.fromCallable {
             val user = client.getUser(email)
             user.deactivate()
             user.delete()
+        }.thenReturn(true)
+    }
+
+    fun setRole(email: String, groupId: String): Mono<Boolean> {
+        return Mono.fromCallable { client.getUser(email).addToGroup(groupId) }.thenReturn(true)
+    }
+
+    fun removeRole(email: String, groupId: String): Mono<Boolean> {
+        return Mono.fromCallable { client.getGroup(groupId).removeUser(email) }.thenReturn(true)
+    }
+
+    fun getRoles(email: String): Mono<List<Role>> {
+        return Mono.fromCallable {
+            client.getUser(email).listGroups()
+                    .filterNot { it.profile.name == EVERYONE_GROUP }
+                    .map { Role(it) }
         }
     }
 
+    fun getRoles(): Flux<Role> {
+        return Flux.fromIterable(client.listGroups()
+                .filterNot { it.profile.name == EVERYONE_GROUP }
+                .map { Role(it) })
+    }
+
+    private fun getUserRole(): Role {
+        return Role(client.listGroups("user", "", "").first())
+    }
+
+    companion object {
+        private const val EVERYONE_GROUP = "Everyone"
+    }
 }

@@ -1,10 +1,13 @@
 package com.withaion.backend.handlers
 
+import com.withaion.backend.models.Role
+import com.withaion.backend.services.OktaService
 import org.springframework.web.reactive.function.server.ServerResponse
-import reactor.core.publisher.Mono
 
-class RoleHandler() {
+class RoleHandler(
+        private val oktaService: OktaService
+) {
 
-    fun getAll() = ServerResponse.ok().syncBody(Mono.just("Not implemented"))
+    fun getAll() = ServerResponse.ok().body(oktaService.getRoles(), Role::class.java)
 
 }

@@ -31,11 +31,11 @@ val routerBeans = beans {
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
 //                POST("/{id}/setEnable/{isEnable}") { handler.setEnable(it) }
-//                POST("/{id}/addRole") { handler.addRole(it) }
-//                POST("/{id}/removeRole") { handler.removeRole(it) }
+                POST("/{id}/addRole") { handler.addRole(it) }
+                POST("/{id}/removeRole") { handler.removeRole(it) }
             }
             "/roles".nest {
-                val handler = RoleHandler()
+                val handler = RoleHandler(ref())
                 GET("") { handler.getAll() }
             }
         }
