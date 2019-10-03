@@ -1,8 +1,12 @@
 package com.withaion.backend.services
 
 import com.okta.sdk.client.Client
+import com.okta.sdk.resource.user.ChangePasswordRequest
+import com.okta.sdk.resource.user.PasswordCredential
+
 import com.okta.sdk.resource.user.User
 import com.okta.sdk.resource.user.UserBuilder
+import com.withaion.backend.dto.ChangePasswordDto
 import com.withaion.backend.dto.UserNewDto
 import com.withaion.backend.dto.UserUpdateDto
 import com.withaion.backend.models.Role
@@ -25,6 +29,9 @@ class OktaService(
             builder.setPassword(user.password.toCharArray())
             builder.addGroup(getUserRole().id)
             builder.buildAndCreate(client)
+        }.doOnError {
+            println(it)
+            println(it.message)
         }
     }
 
@@ -59,6 +66,14 @@ class OktaService(
         } else {
             client.getUser(email).unsuspend()
         }).thenReturn(true)
+    }
+
+    fun changePassword(email: String, changePasswordDto: ChangePasswordDto): Mono<Boolean> {
+        return Mono.fromCallable {
+            client.getUser(email).changePassword(client.instantiate(ChangePasswordRequest::class.java)
+                    .setOldPassword(client.instantiate(PasswordCredential::class.java).setValue(changePasswordDto.currentPassword.toCharArray()))
+                    .setNewPassword(client.instantiate(PasswordCredential::class.java).setValue(changePasswordDto.newPassword.toCharArray())))
+        }.map { true }
     }
 
     fun setRole(email: String, groupId: String): Mono<Boolean> {

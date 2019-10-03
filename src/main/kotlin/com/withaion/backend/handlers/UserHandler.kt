@@ -1,14 +1,12 @@
 package com.withaion.backend.handlers
 
+import com.okta.sdk.resource.ResourceException
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.*
-import com.withaion.backend.exceptions.FieldConflictException
-import com.withaion.backend.exceptions.FieldRequiredException
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.User
 import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.OktaService
-import org.springframework.http.HttpStatus
 import org.springframework.util.Base64Utils
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -55,8 +53,7 @@ class UserHandler(
                 ServerResponse.ok().syncBody("User created successfully".toResponse())
             }.onErrorResume {
                 when (it) {
-                    is FieldRequiredException -> ServerResponse.badRequest().syncBody(it.message.toResponse())
-                    is FieldConflictException -> ServerResponse.status(HttpStatus.CONFLICT).syncBody(it.message.toResponse())
+                    is ResourceException -> ServerResponse.status(it.error.status).syncBody(it.toResponse())
                     else -> it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
                 }
             }
@@ -73,7 +70,7 @@ class UserHandler(
             }.flatMap { ServerResponse.ok().syncBody("User updated successfully".toResponse()) }
             .onErrorResume {
                 when (it) {
-                    is FieldConflictException -> ServerResponse.status(HttpStatus.CONFLICT).syncBody(it.message.toResponse())
+                    is ResourceException -> ServerResponse.status(it.error.status).syncBody(it.toResponse())
                     else -> it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
                 }
             }
@@ -141,5 +138,17 @@ class UserHandler(
             },
             ResponseDto::class.java
     )
+
+    fun changePassword(request: ServerRequest) = request.principal()
+            .flatMap { principal ->
+                request.bodyToMono(ChangePasswordDto::class.java).flatMap { oktaService.changePassword(principal.name, it) }
+            }.flatMap { ServerResponse.ok().syncBody("Password updated successfully".toResponse()) }
+            .onErrorResume {
+                when (it) {
+                    is ResourceException -> ServerResponse.status(it.error.status).syncBody(it.toResponse())
+                    else -> it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
+                }
+            }
+
 }
 

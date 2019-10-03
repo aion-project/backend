@@ -22,6 +22,7 @@ val routerBeans = beans {
                     GET("/") { handler.getMe(it) }
                     POST("/activate") { handler.activate(it) }
                     POST("/uploadAvatar") { handler.uploadAvatar(it) }
+                    POST("/changePassword") { handler.changePassword(it) }
                 }
 
                 // User endpoints
