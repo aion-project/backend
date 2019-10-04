@@ -21,7 +21,7 @@ class UserHandler(
     fun getMe(request: ServerRequest) = ServerResponse.ok().body(
             request.principal().flatMap { principal ->
                 userRepository.findByEmail(principal.name).flatMap { user ->
-                    oktaService.getRoles(user.email).map {
+                    oktaService.getUserRoles(user.email).map {
                         user.copy(roles = it)
                     }
                 }
@@ -31,7 +31,7 @@ class UserHandler(
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findById(request.pathVariable("id")).flatMap { user ->
-                oktaService.getRoles(user.email).map {
+                oktaService.getUserRoles(user.email).map {
                     user.copy(roles = it)
                 }
             },

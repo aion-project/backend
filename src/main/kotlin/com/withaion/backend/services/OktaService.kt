@@ -84,7 +84,7 @@ class OktaService(
         return Mono.fromCallable { client.getGroup(groupId).removeUser(email) }.thenReturn(true)
     }
 
-    fun getRoles(email: String): Mono<List<Role>> {
+    fun getUserRoles(email: String): Mono<List<Role>> {
         return Mono.fromCallable {
             client.getUser(email).listGroups()
                     .filterNot { it.profile.name == EVERYONE_GROUP }

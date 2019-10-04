@@ -1,6 +1,7 @@
 package com.withaion.backend.routes
 
 import com.withaion.backend.handlers.BlobHandler
+import com.withaion.backend.handlers.LocationHandler
 import com.withaion.backend.handlers.RoleHandler
 import com.withaion.backend.handlers.UserHandler
 import org.springframework.context.support.beans
@@ -38,6 +39,10 @@ val routerBeans = beans {
             "/roles".nest {
                 val handler = RoleHandler(ref())
                 GET("") { handler.getAll() }
+            }
+            "/locations".nest {
+                val handler = LocationHandler(ref())
+                POST("/") { handler.create(it) }
             }
         }
     }
