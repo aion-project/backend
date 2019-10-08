@@ -1,6 +1,7 @@
 package com.withaion.backend.services
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cloud.gcp.storage.GoogleStorageResource
 import org.springframework.core.io.Resource
 import org.springframework.core.io.WritableResource
 import org.springframework.stereotype.Service
@@ -22,13 +23,11 @@ class StorageService(
     @Throws(NoSuchFileException::class)
     fun writeBlob(path: String, contentType: String, data: ByteArray) {
         val writableResource = storageResource.createRelative(path) as WritableResource
-//        TODO - Uncomment following once Google Storage is integrated
-//
-//        if (writableResource is GoogleStorageResource) {
-//            val blob = writableResource.createBlob()
-//            blob.toBuilder().setContentType(contentType).build().update()
-//        }
-        writableResource.outputStream.write(data)
+        if (writableResource is GoogleStorageResource) {
+            val blob = writableResource.createBlob()
+            blob.toBuilder().setContentType(contentType).build().update()
+        }
+        writableResource.outputStream.use { os -> os.write(data) }
     }
 
 }

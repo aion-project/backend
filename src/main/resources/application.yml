@@ -18,16 +18,9 @@ okta:
     token: 00bD4gBD69X6THNeGdsO1SYt2B5lydDtJ7PEj19gZ2
     org-url: https://dev-107152.okta.com
 
-# Apparently, Writing data to Google Cloud Storage blobs doesn't work. XD
-#
-# Replace the storage configs with following configs once it works.
-# protocol: gs
-# bucket: aion-storage
-#
-# Until local file system will be used as storage (LOL!)
 storage:
-  protocol: file
-  bucket: home/udesh/aion-storage
+  protocol: gs
+  bucket: aion-storage
   thumbnail:
     width: 256
     height: 256
