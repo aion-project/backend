@@ -24,9 +24,3 @@ storage:
   thumbnail:
     width: 256
     height: 256
-
-keycloak:
-  admin:
-    realm: master
-    username: admin
-    password: admin
