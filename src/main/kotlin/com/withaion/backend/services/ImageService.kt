@@ -45,12 +45,13 @@ class ImageService(
     @Throws(ImageResizeException::class)
     fun resolve(path: String, filename: String, type: String): Resource {
         return if (!type.endsWith(ORIGINAL_TYPE)) {
-
-            if (storageService.existsBlob(path + "/" + getResizedFileName(filename, type))) {
-                // Get image from storage if it is already resized.
-                storageService.readBlob(path + "/" + getResizedFileName(filename, type))
-            } else {
-                // Resize image, store it and return it.
+            try {
+                if (storageService.existsBlob(path + "/" + getResizedFileName(filename, type))) {
+                    storageService.readBlob(path + "/" + getResizedFileName(filename, type))
+                } else {
+                    resizeAndSave(path, filename, type)
+                }
+            } catch (gcpFileNotFound: UnsupportedOperationException) {
                 resizeAndSave(path, filename, type)
             }
         } else {
