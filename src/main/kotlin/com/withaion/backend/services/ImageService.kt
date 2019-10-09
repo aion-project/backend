@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.io.InputStream
 import java.util.*
 import javax.imageio.ImageIO
 
@@ -45,13 +45,9 @@ class ImageService(
     @Throws(ImageResizeException::class)
     fun resolve(path: String, filename: String, type: String): Resource {
         return if (!type.endsWith(ORIGINAL_TYPE)) {
-            try {
-                if (storageService.existsBlob(path + "/" + getResizedFileName(filename, type))) {
-                    storageService.readBlob(path + "/" + getResizedFileName(filename, type))
-                } else {
-                    resizeAndSave(path, filename, type)
-                }
-            } catch (gcpFileNotFound: UnsupportedOperationException) {
+            if (storageService.existsBlob(path + "/" + getResizedFileName(filename, type))) {
+                storageService.readBlob(path + "/" + getResizedFileName(filename, type))
+            } else {
                 resizeAndSave(path, filename, type)
             }
         } else {
@@ -68,7 +64,7 @@ class ImageService(
     private fun resizeAndSave(path: String, filename: String, type: String): Resource {
         try {
             val resource = storageService.readBlob("$path/$filename")
-            val resizedImage = getResizedImage(resource.file, type)
+            val resizedImage = getResizedImage(resource.inputStream, type)
             val outputStream = ByteArrayOutputStream()
             ImageIO.write(resizedImage, "jpg", outputStream)
             val outputByteArray = outputStream.toByteArray()
@@ -83,9 +79,9 @@ class ImageService(
     }
 
     @Throws(ImageResizeException::class)
-    private fun getResizedImage(file: File, type: String): BufferedImage {
+    private fun getResizedImage(inputStream: InputStream, type: String): BufferedImage {
         try {
-            val bufferedImage = ImageIO.read(file)
+            val bufferedImage = ImageIO.read(inputStream)
             return resize(bufferedImage, type)
         } catch (exception: IOException) {
             throw ImageResizeException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not read the original image.")
