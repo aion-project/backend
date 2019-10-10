@@ -1,3 +1,5 @@
+@file:Suppress("DuplicatedCode")
+
 package com.withaion.backend.routes
 
 import com.withaion.backend.handlers.BlobHandler
@@ -42,7 +44,12 @@ val routerBeans = beans {
             }
             "/locations".nest {
                 val handler = LocationHandler(ref())
+
+                GET("/{id}") { handler.get(it) }
+                GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }
+                PUT("/{id}") { handler.update(it) }
+                DELETE("/{id}") { handler.delete(it) }
             }
         }
     }
