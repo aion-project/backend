@@ -10,5 +10,6 @@ data class Location(
         @Id val id: String? = null,
         val name: String,
         val level: String,
-        val description: String? = null
+        val description: String? = null,
+        val ac: Boolean = false
 )
