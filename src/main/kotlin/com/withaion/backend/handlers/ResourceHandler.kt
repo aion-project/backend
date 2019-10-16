@@ -31,9 +31,8 @@ class ResourceHandler(
 
   fun delete(request: ServerRequest) = ServerResponse.ok().body(
           resourceRepository.deleteById(request.pathVariable("id")).thenReturn(true)
-                  .map { "Location deleted successfully".toResponse() },
+                  .map { "Resouce deleted successfully".toResponse() },
           ResponseDto::class.java
   )
-
 
 }
