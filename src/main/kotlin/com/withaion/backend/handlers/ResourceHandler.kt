@@ -12,6 +12,11 @@ class ResourceHandler(
         private val resourceRepository: ResourceRepository
 ) {
 
+  fun get(request: ServerRequest) = ServerResponse.ok().body(
+          resourceRepository.findById(request.pathVariable("id")),
+          Resource::class.java
+  )
+
   fun getAll() = ServerResponse.ok().body(
           resourceRepository.findAll(),
           Resource::class.java
@@ -23,5 +28,12 @@ class ResourceHandler(
                   .map { "Resource created successfully".toResponse() },
           ResponseDto::class.java
   )
+
+  fun delete(request: ServerRequest) = ServerResponse.ok().body(
+          resourceRepository.deleteById(request.pathVariable("id")).thenReturn(true)
+                  .map { "Location deleted successfully".toResponse() },
+          ResponseDto::class.java
+  )
+
 
 }
