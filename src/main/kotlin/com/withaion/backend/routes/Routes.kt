@@ -51,8 +51,10 @@ val routerBeans = beans {
             "/resources".nest {
                 val handler = ResourceHandler(ref())
 
+                GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }
+                DELETE("/{id}") { handler.delete(it) }
             }
         }
     }
