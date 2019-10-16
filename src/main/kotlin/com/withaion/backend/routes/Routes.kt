@@ -2,10 +2,7 @@
 
 package com.withaion.backend.routes
 
-import com.withaion.backend.handlers.BlobHandler
-import com.withaion.backend.handlers.LocationHandler
-import com.withaion.backend.handlers.RoleHandler
-import com.withaion.backend.handlers.UserHandler
+import com.withaion.backend.handlers.*
 import org.springframework.context.support.beans
 import org.springframework.web.reactive.function.server.router
 
@@ -44,6 +41,15 @@ val routerBeans = beans {
             }
             "/locations".nest {
                 val handler = LocationHandler(ref())
+
+                GET("/{id}") { handler.get(it) }
+                GET("/") { handler.getAll() }
+                POST("/") { handler.create(it) }
+                PUT("/{id}") { handler.update(it) }
+                DELETE("/{id}") { handler.delete(it) }
+            }
+            "/resources".nest {
+                val handler = ResourceHandler(ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }

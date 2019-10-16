@@ -4,12 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
-@Document(collection = "location")
+@Document(collection = "resource")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class Location(
+data class Resource(
         @Id val id: String? = null,
         val name: String,
-        val level: String,
-        val description: String? = null,
-        val ac: Boolean = false
+        val description: String? = null
 )
