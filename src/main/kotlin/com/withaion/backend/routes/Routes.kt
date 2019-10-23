@@ -65,7 +65,7 @@ val routerBeans = beans {
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }
 //                PUT("/{id}") { handler.update(it) }
-//                DELETE("/{id}") { handler.delete(it) }
+                DELETE("/{id}") { handler.delete(it) }
             }
 
         }
