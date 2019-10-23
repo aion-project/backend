@@ -29,4 +29,9 @@ class GroupHandler(
             ResponseDto::class.java
     )
 
+    fun delete(request: ServerRequest) = ServerResponse.ok().body(
+            groupRepository.deleteById(request.pathVariable("id")).thenReturn(true)
+                    .map { "Group deleted successfully".toResponse() },
+            ResponseDto::class.java
+    )
 }
