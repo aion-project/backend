@@ -4,9 +4,8 @@ import com.withaion.backend.models.Group
 
 class GroupUpdateDto(
         val name : String? ,
-        val description : String? )
-
-{
+        val description : String?
+) {
     fun toUpdatedGroup(group: Group):Group{
         var currentGroup = group
         name?.let {
