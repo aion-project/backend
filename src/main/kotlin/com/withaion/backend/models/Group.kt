@@ -10,5 +10,4 @@ data class Group(
         @Id val id: String? = null,
         val name: String,
         val description: String
-
 )
