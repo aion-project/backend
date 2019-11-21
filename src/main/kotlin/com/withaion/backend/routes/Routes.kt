@@ -66,6 +66,15 @@ val routerBeans = beans {
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
             }
+            "/events".nest {
+                val handler = EventHandler(ref())
+
+                GET("/{id}") { handler.get(it) }
+                GET("/") { handler.getAll() }
+                POST("/") { handler.create(it) }
+                PUT("/{id}") { handler.update(it) }
+                DELETE("/{id}") { handler.delete(it) }
+            }
         }
     }
 }
