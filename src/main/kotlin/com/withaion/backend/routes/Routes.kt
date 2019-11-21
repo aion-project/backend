@@ -3,7 +3,6 @@
 package com.withaion.backend.routes
 
 import com.withaion.backend.handlers.*
-import com.withaion.backend.models.Group
 import org.springframework.context.support.beans
 import org.springframework.web.reactive.function.server.router
 
@@ -58,16 +57,15 @@ val routerBeans = beans {
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
             }
-            "/group".nest {
+            "/groups".nest {
                 val handler = GroupHandler(ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }
-//                PUT("/{id}") { handler.update(it) }
+                PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
             }
-
         }
     }
 }
