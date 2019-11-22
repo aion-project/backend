@@ -2,6 +2,7 @@ package com.withaion.backend.models
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "user")
@@ -16,5 +17,6 @@ data class User(
         val roles: List<Role>? = null,
         val avatarUrl: String? = null,
         val thumbnailUrl: String? = null,
-        val bio: String? = null
+        val bio: String? = null,
+        @DBRef val groups: List<Group> = listOf()
 )
