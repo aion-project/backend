@@ -1,14 +1,12 @@
 package com.withaion.backend.models
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "user")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class User(
-        @Id val id: String? = null,
+        val id: String? = null,
         val firstName: String,
         val lastName: String,
         val email: String,
@@ -18,5 +16,14 @@ data class User(
         val avatarUrl: String? = null,
         val thumbnailUrl: String? = null,
         val bio: String? = null,
-        @DBRef val groups: List<Group> = listOf()
+        val groups: List<GroupRef> = listOf()
 )
+
+data class UserRef(
+        val id: String,
+        val firstName: String,
+        val lastName: String,
+        val email: String
+) {
+    constructor(user: User) : this(user.id!!, user.firstName, user.lastName, user.email)
+}

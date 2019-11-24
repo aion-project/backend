@@ -58,13 +58,15 @@ val routerBeans = beans {
                 DELETE("/{id}") { handler.delete(it) }
             }
             "/groups".nest {
-                val handler = GroupHandler(ref())
+                val handler = GroupHandler(ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
+                POST("/{id}/addUser") { handler.addUser(it) }
+                POST("/{id}/removeUser") { handler.removeUser(it) }
             }
             "/events".nest {
                 val handler = EventHandler(ref())
