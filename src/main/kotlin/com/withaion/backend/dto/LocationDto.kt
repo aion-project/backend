@@ -52,3 +52,7 @@ data class LocationUpdateDto(
         return currentLocation
     }
 }
+
+class LocationChangeResourceDto(
+        val resource: String
+)

@@ -9,5 +9,14 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class Resource(
         @Id val id: String? = null,
         val name: String,
-        val description: String? = null
+        val description: String? = null,
+        val locations: List<LocationRef> = listOf()
 )
+
+data class ResourceRef(
+        val id: String,
+        val name: String,
+        val description: String?
+) {
+    constructor(resource: Resource) : this(resource.id!!, resource.name, resource.description)
+}

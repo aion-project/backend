@@ -11,5 +11,14 @@ data class Location(
         val name: String,
         val level: String,
         val description: String? = null,
-        val ac: Boolean = false
+        val ac: Boolean = false,
+        val resources: List<ResourceRef> = listOf()
 )
+
+data class LocationRef(
+        val id: String,
+        val name: String,
+        val description: String?
+) {
+    constructor(location: Location) : this(location.id!!, location.name, location.description)
+}
