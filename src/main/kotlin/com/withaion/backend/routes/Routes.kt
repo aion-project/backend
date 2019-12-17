@@ -15,7 +15,7 @@ val routerBeans = beans {
                 GET("/{category}/{filename:.+}") { handler.getBlob(it) }
             }
             "/users".nest {
-                val handler = UserHandler(ref(), ref(), ref())
+                val handler = UserHandler(ref(), ref(), ref(), ref())
 
                 // Personal endpoints
                 "/me".nest {
@@ -34,6 +34,8 @@ val routerBeans = beans {
                 POST("/{id}/setEnable/{isEnable}") { handler.setEnable(it) }
                 POST("/{id}/addRole") { handler.addRole(it) }
                 POST("/{id}/removeRole") { handler.removeRole(it) }
+                POST("/{id}/setLocation") { handler.setLocation(it) }
+                POST("/{id}/removeLocation") { handler.removeLocation(it) }
             }
             "/roles".nest {
                 val handler = RoleHandler(ref())

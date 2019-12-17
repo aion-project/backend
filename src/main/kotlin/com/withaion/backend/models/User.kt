@@ -16,7 +16,8 @@ data class User(
         val avatarUrl: String? = null,
         val thumbnailUrl: String? = null,
         val bio: String? = null,
-        val groups: List<GroupRef> = listOf()
+        val groups: List<GroupRef> = listOf(),
+        val location: LocationRef? = null
 )
 
 data class UserRef(

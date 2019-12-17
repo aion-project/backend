@@ -1,9 +1,11 @@
 package com.withaion.backend.handlers
 
 import com.okta.sdk.resource.ResourceException
+import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
+import com.withaion.backend.models.LocationRef
 import com.withaion.backend.models.User
 import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.OktaService
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono
 class UserHandler(
         private val oktaService: OktaService,
         private val userRepository: UserRepository,
+        private val locationRepository: LocationRepository,
         private val imageService: ImageService
 ) {
 
@@ -118,6 +121,24 @@ class UserHandler(
                 request.bodyToMono(RoleDto::class.java)
                         .flatMap { oktaService.removeRole(user.email, it.roleId) }
             }.map { "Role removed successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun setLocation(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findById(request.pathVariable("id")).flatMap { user ->
+                request.bodyToMono(IdDto::class.java)
+                        .flatMap { locationRepository.findById(it.id).map { location -> LocationRef(location) } }
+                        .map { user.copy(location = it) }
+                        .flatMap { userRepository.save(it) }
+            }.map { "Location added successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun removeLocation(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findById(request.pathVariable("id"))
+                    .map { user -> user.copy(location = null)}
+                    .flatMap { userRepository.save(it) }
+                    .map { "Role removed successfully".toResponse() },
             ResponseDto::class.java
     )
 
