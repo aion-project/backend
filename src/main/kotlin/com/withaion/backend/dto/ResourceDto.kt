@@ -27,7 +27,7 @@ data class ResourceUpdateDto(
         val name: String?,
         val description: String?
 ) {
-    fun toUpdatedLocation(resource: Resource): Resource {
+    fun toUpdatedResource(resource: Resource): Resource {
         var currentResource = resource
         name?.let {
             currentResource = currentResource.copy(name = name)

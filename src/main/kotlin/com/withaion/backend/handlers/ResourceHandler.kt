@@ -48,7 +48,7 @@ class ResourceHandler(
             request.bodyToMono(ResourceUpdateDto::class.java)
                     .flatMap { updateResource ->
                         resourceRepository.findById(request.pathVariable("id"))
-                                .flatMap { resourceRepository.save(updateResource.toUpdatedLocation(it)) }
+                                .flatMap { resourceRepository.save(updateResource.toUpdatedResource(it)) }
                     }.map { "Resource updated successfully".toResponse() },
             ResponseDto::class.java
     )
