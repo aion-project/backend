@@ -1,6 +1,7 @@
 package com.withaion.backend.handlers
 
 import com.withaion.backend.data.EventRepository
+import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.SubjectRepository
 import com.withaion.backend.dto.EventNewDto
 import com.withaion.backend.dto.EventUpdateDto
@@ -15,7 +16,8 @@ import org.springframework.web.reactive.function.server.ServerResponse
 
 class EventHandler(
         private val eventRepository: EventRepository,
-        private val subjectRepository: SubjectRepository
+        private val subjectRepository: SubjectRepository,
+        private val locationRepository: LocationRepository
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -56,13 +58,31 @@ class EventHandler(
                         .flatMap { subjectRepository.findById(it.id).map { subject -> SubjectRef(subject) } }
                         .map { event.copy(subject = it) }
                         .flatMap { eventRepository.save(it) }
-            }.map { "Location added successfully".toResponse() },
+            }.map { "Subject added successfully".toResponse() },
             ResponseDto::class.java
     )
 
     fun removeSubject(request: ServerRequest) = ServerResponse.ok().body(
             eventRepository.findById(request.pathVariable("id"))
                     .map { event -> event.copy(subject = null)}
+                    .flatMap { eventRepository.save(it) }
+                    .map { "Subject removed successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun setLocation(request: ServerRequest) = ServerResponse.ok().body(
+            eventRepository.findById(request.pathVariable("id")).flatMap { event ->
+                request.bodyToMono(IdDto::class.java)
+                        .flatMap { locationRepository.findById(it.id).map { location -> LocationRef(location) } }
+                        .map { event.copy(location = it) }
+                        .flatMap { eventRepository.save(it) }
+            }.map { "Location added successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun removeLocation(request: ServerRequest) = ServerResponse.ok().body(
+            eventRepository.findById(request.pathVariable("id"))
+                    .map { event -> event.copy(location = null)}
                     .flatMap { eventRepository.save(it) }
                     .map { "Location removed successfully".toResponse() },
             ResponseDto::class.java
