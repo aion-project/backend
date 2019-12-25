@@ -1,7 +1,10 @@
 package com.withaion.backend.models
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "group")
@@ -10,13 +13,5 @@ data class Group(
         @Id val id: String? = null,
         val name: String,
         val description: String,
-        val users: List<UserRef> = listOf()
+        @DBRef(lazy = true) @JsonBackReference val users: List<User> = listOf()
 )
-
-data class GroupRef(
-        val id: String,
-        val name: String,
-        val description: String
-) {
-    constructor(group: Group) : this(group.id!!, group.name, group.description)
-}

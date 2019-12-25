@@ -1,14 +1,18 @@
 package com.withaion.backend.handlers
 
+import com.mongodb.DBRef
 import com.okta.sdk.resource.ResourceException
 import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.LocationRef
+import com.withaion.backend.models.Group
 import com.withaion.backend.models.User
 import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.OktaService
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.util.Base64Utils
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -18,7 +22,8 @@ class UserHandler(
         private val oktaService: OktaService,
         private val userRepository: UserRepository,
         private val locationRepository: LocationRepository,
-        private val imageService: ImageService
+        private val imageService: ImageService,
+        private val mongoTemplate: ReactiveMongoTemplate
 ) {
 
     fun getMe(request: ServerRequest) = ServerResponse.ok().body(
@@ -80,7 +85,10 @@ class UserHandler(
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findById(request.pathVariable("id")).flatMap { user ->
+                val update: Update = Update().pull("users", user)
+
                 Mono.zip(
+                        mongoTemplate.upsert(Query(), update, Group::class.java),
                         oktaService.deleteUser(user.email),
                         userRepository.deleteById(user.id!!).thenReturn(true)
                 )
@@ -127,7 +135,7 @@ class UserHandler(
     fun setLocation(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findById(request.pathVariable("id")).flatMap { user ->
                 request.bodyToMono(IdDto::class.java)
-                        .flatMap { locationRepository.findById(it.id).map { location -> LocationRef(location) } }
+                        .flatMap { locationRepository.findById(it.id) }
                         .map { user.copy(location = it) }
                         .flatMap { userRepository.save(it) }
             }.map { "Location added successfully".toResponse() },

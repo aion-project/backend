@@ -20,6 +20,6 @@ data class Event(
         val endDateTime: LocalDateTime,
         val repeat: RepeatType = RepeatType.NONE,
         val subject: SubjectRef? = null,
-        val location: LocationRef? = null,
+        @DBRef val location: Location? = null,
         @DBRef val createdBy: User? = null
 )

@@ -9,7 +9,6 @@ import com.withaion.backend.dto.IdDto
 import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Event
-import com.withaion.backend.models.LocationRef
 import com.withaion.backend.models.SubjectRef
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -73,7 +72,7 @@ class EventHandler(
     fun setLocation(request: ServerRequest) = ServerResponse.ok().body(
             eventRepository.findById(request.pathVariable("id")).flatMap { event ->
                 request.bodyToMono(IdDto::class.java)
-                        .flatMap { locationRepository.findById(it.id).map { location -> LocationRef(location) } }
+                        .flatMap { locationRepository.findById(it.id) }
                         .map { event.copy(location = it) }
                         .flatMap { eventRepository.save(it) }
             }.map { "Location added successfully".toResponse() },

@@ -15,7 +15,7 @@ val routerBeans = beans {
                 GET("/{category}/{filename:.+}") { handler.getBlob(it) }
             }
             "/users".nest {
-                val handler = UserHandler(ref(), ref(), ref(), ref())
+                val handler = UserHandler(ref(), ref(), ref(), ref(), ref())
 
                 // Personal endpoints
                 "/me".nest {
@@ -42,7 +42,7 @@ val routerBeans = beans {
                 GET("") { handler.getAll() }
             }
             "/locations".nest {
-                val handler = LocationHandler(ref(), ref())
+                val handler = LocationHandler(ref(), ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
@@ -53,7 +53,7 @@ val routerBeans = beans {
                 POST("/{id}/removeResource") { handler.removeResource(it) }
             }
             "/resources".nest {
-                val handler = ResourceHandler(ref(), ref(), ref())
+                val handler = ResourceHandler(ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
@@ -62,7 +62,7 @@ val routerBeans = beans {
                 DELETE("/{id}") { handler.delete(it) }
             }
             "/groups".nest {
-                val handler = GroupHandler(ref(), ref())
+                val handler = GroupHandler(ref(), ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }

@@ -1,7 +1,9 @@
 package com.withaion.backend.models
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "resource")
@@ -10,13 +12,5 @@ data class Resource(
         @Id val id: String? = null,
         val name: String,
         val description: String? = null,
-        val locations: List<LocationRef> = listOf()
+        @DBRef(lazy = true) @JsonBackReference val locations: List<Location> = listOf()
 )
-
-data class ResourceRef(
-        val id: String,
-        val name: String,
-        val description: String?
-) {
-    constructor(resource: Resource) : this(resource.id!!, resource.name, resource.description)
-}

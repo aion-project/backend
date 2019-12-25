@@ -1,5 +1,6 @@
 package com.withaion.backend.handlers
 
+import com.mongodb.DBRef
 import com.withaion.backend.data.GroupRepository
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.GroupChangeUserDto
@@ -7,16 +8,18 @@ import com.withaion.backend.dto.GroupNewDto
 import com.withaion.backend.dto.GroupUpdateDto
 import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.Group
-import com.withaion.backend.models.GroupRef
-import com.withaion.backend.models.UserRef
+import com.withaion.backend.models.*
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 
 class GroupHandler(
         private val groupRepository: GroupRepository,
-        private val userRepository: UserRepository
+        private val userRepository: UserRepository,
+        private val mongoTemplate: ReactiveMongoTemplate
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -37,8 +40,15 @@ class GroupHandler(
     )
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
-            groupRepository.deleteById(request.pathVariable("id")).thenReturn(true)
-                    .map { "Group deleted successfully".toResponse() },
+            groupRepository.findById(request.pathVariable("id")).flatMap {
+                val update: Update = Update().pull("groups", it)
+
+                Mono.zip(
+                        mongoTemplate.upsert(Query(), update, User::class.java),
+                        groupRepository.delete(it).thenReturn(true)
+                ).map { "Group deleted successfully".toResponse() }
+            }
+            ,
             ResponseDto::class.java
     )
 
@@ -58,10 +68,10 @@ class GroupHandler(
                         groupRepository.findById(request.pathVariable("id"))
                 ).flatMap {
                     // Update objects
-                    val users: ArrayList<UserRef> = ArrayList(it.t2.users)
-                    users.add(UserRef(it.t1))
-                    val groups: ArrayList<GroupRef> = ArrayList(it.t1.groups)
-                    groups.add(GroupRef(it.t2))
+                    val users: ArrayList<User> = ArrayList(it.t2.users)
+                    users.add(it.t1)
+                    val groups: ArrayList<Group> = ArrayList(it.t1.groups)
+                    groups.add(it.t2)
 
                     Mono.zip(
                             userRepository.save(it.t1.copy(groups = groups)),
@@ -79,10 +89,10 @@ class GroupHandler(
                         groupRepository.findById(request.pathVariable("id"))
                 ).flatMap {
                     // Update objects
-                    val users: ArrayList<UserRef> = ArrayList(it.t2.users)
-                    users.remove(UserRef(it.t1))
-                    val groups: ArrayList<GroupRef> = ArrayList(it.t1.groups)
-                    groups.remove(GroupRef(it.t2))
+                    val users: ArrayList<User> = ArrayList(it.t2.users)
+                    users.remove(it.t1)
+                    val groups: ArrayList<Group> = ArrayList(it.t1.groups)
+                    groups.remove(it.t2)
 
                     Mono.zip(
                             userRepository.save(it.t1.copy(groups = groups)),

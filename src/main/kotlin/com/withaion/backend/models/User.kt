@@ -1,6 +1,9 @@
 package com.withaion.backend.models
 
+import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonManagedReference
+import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "user")
@@ -16,15 +19,6 @@ data class User(
         val avatarUrl: String? = null,
         val thumbnailUrl: String? = null,
         val bio: String? = null,
-        val groups: List<GroupRef> = listOf(),
-        val location: LocationRef? = null
+        @DBRef(lazy = true) @JsonManagedReference val groups: List<Group> = listOf(),
+        @DBRef val location: Location? = null
 )
-
-data class UserRef(
-        val id: String,
-        val firstName: String,
-        val lastName: String,
-        val email: String
-) {
-    constructor(user: User) : this(user.id!!, user.firstName, user.lastName, user.email)
-}

@@ -8,15 +8,18 @@ import com.withaion.backend.dto.LocationUpdateDto
 import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Location
-import com.withaion.backend.models.LocationRef
-import com.withaion.backend.models.ResourceRef
+import com.withaion.backend.models.Resource
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 
 class LocationHandler(
         private val locationRepository: LocationRepository,
-        private val resourceRepository: ResourceRepository
+        private val resourceRepository: ResourceRepository,
+        private val mongoTemplate: ReactiveMongoTemplate
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -47,8 +50,15 @@ class LocationHandler(
     )
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
-            locationRepository.deleteById(request.pathVariable("id")).thenReturn(true)
-                    .map { "Location deleted successfully".toResponse() },
+            locationRepository.findById(request.pathVariable("id")).flatMap {
+                val update: Update = Update().pull("locations", it)
+
+                Mono.zip(
+                        mongoTemplate.upsert(Query(), update, Resource::class.java),
+                        locationRepository.delete(it).thenReturn(true)
+                ).map { "Location deleted successfully".toResponse() }
+            }
+            ,
             ResponseDto::class.java
     )
 
@@ -59,10 +69,10 @@ class LocationHandler(
                         locationRepository.findById(request.pathVariable("id"))
                 ).flatMap {
                     // Update objects
-                    val resources: ArrayList<ResourceRef> = ArrayList(it.t2.resources)
-                    resources.add(ResourceRef(it.t1))
-                    val locations: ArrayList<LocationRef> = ArrayList(it.t1.locations)
-                    locations.add(LocationRef(it.t2))
+                    val resources: ArrayList<Resource> = ArrayList(it.t2.resources)
+                    resources.add(it.t1)
+                    val locations: ArrayList<Location> = ArrayList(it.t1.locations)
+                    locations.add(it.t2)
 
                     Mono.zip(
                             resourceRepository.save(it.t1.copy(locations = locations)),
@@ -80,10 +90,10 @@ class LocationHandler(
                         locationRepository.findById(request.pathVariable("id"))
                 ).flatMap {
                     // Update objects
-                    val resources: ArrayList<ResourceRef> = ArrayList(it.t2.resources)
-                    resources.remove(ResourceRef(it.t1))
-                    val locations: ArrayList<LocationRef> = ArrayList(it.t1.locations)
-                    locations.remove(LocationRef(it.t2))
+                    val resources: ArrayList<Resource> = ArrayList(it.t2.resources)
+                    resources.remove(it.t1)
+                    val locations: ArrayList<Location> = ArrayList(it.t1.locations)
+                    locations.remove(it.t2)
 
                     Mono.zip(
                             resourceRepository.save(it.t1.copy(locations = locations)),
