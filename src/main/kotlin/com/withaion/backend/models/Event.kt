@@ -19,7 +19,7 @@ data class Event(
         val startDateTime: LocalDateTime,
         val endDateTime: LocalDateTime,
         val repeat: RepeatType = RepeatType.NONE,
-        val subject: SubjectRef? = null,
+        @DBRef val subject: Subject? = null,
         @DBRef val location: Location? = null,
         @DBRef val createdBy: User? = null
 )

@@ -9,7 +9,6 @@ import com.withaion.backend.dto.IdDto
 import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Event
-import com.withaion.backend.models.SubjectRef
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 
@@ -54,7 +53,7 @@ class EventHandler(
     fun setSubject(request: ServerRequest) = ServerResponse.ok().body(
             eventRepository.findById(request.pathVariable("id")).flatMap { event ->
                 request.bodyToMono(IdDto::class.java)
-                        .flatMap { subjectRepository.findById(it.id).map { subject -> SubjectRef(subject) } }
+                        .flatMap { subjectRepository.findById(it.id) }
                         .map { event.copy(subject = it) }
                         .flatMap { eventRepository.save(it) }
             }.map { "Subject added successfully".toResponse() },

@@ -9,11 +9,3 @@ data class Subject(
         val name: String,
         val description: String?
 )
-
-data class SubjectRef(
-        val id: String,
-        val name: String,
-        val description: String?
-) {
-    constructor(subject: Subject) : this(subject.id!!, subject.name, subject.description)
-}
