@@ -14,5 +14,5 @@ data class Group(
         val name: String,
         val description: String,
         @DBRef(lazy = true) @JsonBackReference val users: List<User> = listOf(),
-        @DBRef(lazy = true) @JsonManagedReference val events: List<Event> = listOf()
+        @DBRef(lazy = true) @JsonBackReference val events: List<Event> = listOf()
 )
