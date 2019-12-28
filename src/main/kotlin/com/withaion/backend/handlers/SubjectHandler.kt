@@ -39,12 +39,7 @@ class SubjectHandler(
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
             subjectRepository.findById(request.pathVariable("id")).flatMap {
-                val update: Update = Update().pull("subjects", it)
-
-                Mono.zip(
-                        mongoTemplate.upsert(Query(), update, Group::class.java),
-                        subjectRepository.delete(it).thenReturn(true)
-                ).map { "Subject deleted successfully".toResponse() }
+                subjectRepository.delete(it).thenReturn(true).map { "Subject deleted successfully".toResponse() }
             },
             ResponseDto::class.java
     )

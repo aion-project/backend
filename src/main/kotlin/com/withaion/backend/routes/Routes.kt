@@ -62,7 +62,7 @@ val routerBeans = beans {
                 DELETE("/{id}") { handler.delete(it) }
             }
             "/groups".nest {
-                val handler = GroupHandler(ref(), ref(), ref(), ref())
+                val handler = GroupHandler(ref(), ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
@@ -71,11 +71,9 @@ val routerBeans = beans {
                 DELETE("/{id}") { handler.delete(it) }
                 POST("/{id}/addUser") { handler.addUser(it) }
                 POST("/{id}/removeUser") { handler.removeUser(it) }
-                POST("/{id}/addSubject") { handler.addSubject(it) }
-                POST("/{id}/removeSubject") { handler.removeSubject(it) }
             }
             "/events".nest {
-                val handler = EventHandler(ref(), ref(), ref())
+                val handler = EventHandler(ref(), ref(), ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
@@ -84,6 +82,8 @@ val routerBeans = beans {
                 DELETE("/{id}") { handler.delete(it) }
                 POST("/{id}/setSubject") { handler.setSubject(it) }
                 POST("/{id}/removeSubject") { handler.removeSubject(it) }
+                POST("/{id}/addSubject") { handler.addGroup(it) }
+                POST("/{id}/removeSubject") { handler.removeGroup(it) }
                 POST("/{id}/setLocation") { handler.setLocation(it) }
                 POST("/{id}/removeLocation") { handler.removeLocation(it) }
             }

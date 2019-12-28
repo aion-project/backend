@@ -20,6 +20,7 @@ data class Event(
         val endDateTime: LocalDateTime,
         val repeat: RepeatType = RepeatType.NONE,
         @DBRef val subject: Subject? = null,
+        @DBRef(lazy = true) val groups: List<Group> = listOf(),
         @DBRef val location: Location? = null,
         @DBRef val createdBy: User? = null
 )

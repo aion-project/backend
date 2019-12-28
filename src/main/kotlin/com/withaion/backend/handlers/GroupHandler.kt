@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono
 class GroupHandler(
         private val groupRepository: GroupRepository,
         private val userRepository: UserRepository,
-        private val subjectRepository: SubjectRepository,
         private val mongoTemplate: ReactiveMongoTemplate
 ) {
 
@@ -43,7 +42,7 @@ class GroupHandler(
 
                 Mono.zip(
                         mongoTemplate.upsert(Query(), update, User::class.java),
-                        mongoTemplate.upsert(Query(), update, Subject::class.java),
+                        mongoTemplate.upsert(Query(), update, Event::class.java),
                         groupRepository.delete(it).thenReturn(true)
                 ).map { "Group deleted successfully".toResponse() }
             },
@@ -101,45 +100,4 @@ class GroupHandler(
             ResponseDto::class.java
     )
 
-    fun addSubject(request: ServerRequest) = ServerResponse.ok().body(
-            request.bodyToMono(IdDto::class.java).flatMap { req ->
-                Mono.zip(
-                        subjectRepository.findById(req.id),
-                        groupRepository.findById(request.pathVariable("id"))
-                ).flatMap {
-                    // Update objects
-                    val subjects: ArrayList<Subject> = ArrayList(it.t2.subjects)
-                    subjects.add(it.t1)
-                    val groups: ArrayList<Group> = ArrayList(it.t1.groups)
-                    groups.add(it.t2)
-
-                    Mono.zip(
-                            subjectRepository.save(it.t1.copy(groups = groups)),
-                            groupRepository.save(it.t2.copy(subjects = subjects))
-                    )
-                }.map { "Subject added successfully".toResponse() }
-            },
-            ResponseDto::class.java
-    )
-
-    fun removeSubject(request: ServerRequest) = ServerResponse.ok().body(
-            request.bodyToMono(IdDto::class.java).flatMap { req ->
-                Mono.zip(
-                        subjectRepository.findById(req.id),
-                        groupRepository.findById(request.pathVariable("id"))
-                ).flatMap {
-                    // Update objects
-                    val subjects: ArrayList<Subject> = ArrayList(it.t2.subjects)
-                    subjects.remove(it.t1)
-                    val groups: ArrayList<Group> = ArrayList(it.t1.groups)
-                    groups.remove(it.t2)
-
-                    Mono.zip(
-                            subjectRepository.save(it.t1.copy(groups = groups)),
-                            groupRepository.save(it.t2.copy(subjects = subjects))
-                    )
-                }.map { "User removed successfully".toResponse() }
-            },
-            ResponseDto::class.java
-    )
 }
