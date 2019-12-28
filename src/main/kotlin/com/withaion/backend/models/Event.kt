@@ -10,6 +10,12 @@ enum class RepeatType {
     NONE, DAILY, WEEKLY, MONTHLY
 }
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class Assignment(
+        @DBRef val user: User,
+        @DBRef val role: Role
+)
+
 @Document(collection = "event")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Event(
@@ -19,6 +25,7 @@ data class Event(
         val startDateTime: LocalDateTime,
         val endDateTime: LocalDateTime,
         val repeat: RepeatType = RepeatType.NONE,
+        val assignments: List<Assignment> = listOf(),
         @DBRef val subject: Subject? = null,
         @DBRef(lazy = true) val groups: List<Group> = listOf(),
         @DBRef val location: Location? = null,

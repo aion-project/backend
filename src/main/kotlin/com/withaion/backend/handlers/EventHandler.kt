@@ -1,25 +1,22 @@
 package com.withaion.backend.handlers
 
-import com.withaion.backend.data.EventRepository
-import com.withaion.backend.data.GroupRepository
-import com.withaion.backend.data.LocationRepository
-import com.withaion.backend.data.SubjectRepository
-import com.withaion.backend.dto.EventNewDto
-import com.withaion.backend.dto.EventUpdateDto
-import com.withaion.backend.dto.IdDto
-import com.withaion.backend.dto.ResponseDto
+import com.withaion.backend.data.*
+import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
+import com.withaion.backend.models.Assignment
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
+import java.lang.Exception
 
 class EventHandler(
         private val eventRepository: EventRepository,
         private val subjectRepository: SubjectRepository,
         private val groupRepository: GroupRepository,
-        private val locationRepository: LocationRepository
+        private val locationRepository: LocationRepository,
+        private val userRepository: UserRepository
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -54,6 +51,61 @@ class EventHandler(
             ResponseDto::class.java
     )
 
+    fun addAssignment(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
+        Mono.zip(
+                userRepository.findById(req.userId),
+                eventRepository.findById(request.pathVariable("id"))
+        ).map {
+            val role = it.t1.roles?.first { role -> role.id == req.roleId }
+
+            if (role != null) {
+                Triple(it.t1, role, it.t2)
+            } else {
+                throw Exception("no role")
+            }
+        }.flatMap {
+            // Update objects
+            val assignments: ArrayList<Assignment> = ArrayList(it.third.assignments)
+            assignments.add(Assignment(user = it.first, role = it.second))
+            val events: ArrayList<Event> = ArrayList(it.first.events)
+            events.add(it.third)
+
+            Mono.zip(
+                    userRepository.save(it.first.copy(events = events)),
+                    eventRepository.save(it.third.copy(assignments = assignments))
+            )
+        }.flatMap {
+            ServerResponse.ok().syncBody("User assigned successfully".toResponse())
+        }.onErrorResume {
+            if (it is Exception && it.message == "no role") {
+                ServerResponse.badRequest().syncBody("Error".toResponse())
+            } else {
+                it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
+            }
+        }
+    }
+
+    fun removeAssignment(request: ServerRequest) = ServerResponse.ok().body(
+            request.bodyToMono(IdDto::class.java).flatMap { req ->
+                Mono.zip(
+                        userRepository.findById(req.id),
+                        eventRepository.findById(request.pathVariable("id"))
+                ).flatMap {
+                    // Update objects
+                    val assignments: ArrayList<Assignment> = ArrayList(it.t2.assignments)
+                    assignments.removeIf { assignment -> assignment.user.id == req.id }
+                    val events: ArrayList<Event> = ArrayList(it.t1.events)
+                    events.remove(it.t2)
+
+                    Mono.zip(
+                            userRepository.save(it.t1.copy(events = events)),
+                            eventRepository.save(it.t2.copy(assignments = assignments))
+                    )
+                }.map { "User removed successfully".toResponse() }
+            },
+            ResponseDto::class.java
+    )
+
     fun setSubject(request: ServerRequest) = ServerResponse.ok().body(
             eventRepository.findById(request.pathVariable("id")).flatMap { event ->
                 request.bodyToMono(IdDto::class.java)
@@ -66,7 +118,7 @@ class EventHandler(
 
     fun removeSubject(request: ServerRequest) = ServerResponse.ok().body(
             eventRepository.findById(request.pathVariable("id"))
-                    .map { event -> event.copy(subject = null)}
+                    .map { event -> event.copy(subject = null) }
                     .flatMap { eventRepository.save(it) }
                     .map { "Subject removed successfully".toResponse() },
             ResponseDto::class.java
@@ -126,7 +178,7 @@ class EventHandler(
 
     fun removeLocation(request: ServerRequest) = ServerResponse.ok().body(
             eventRepository.findById(request.pathVariable("id"))
-                    .map { event -> event.copy(location = null)}
+                    .map { event -> event.copy(location = null) }
                     .flatMap { eventRepository.save(it) }
                     .map { "Location removed successfully".toResponse() },
             ResponseDto::class.java
