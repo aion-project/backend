@@ -81,7 +81,10 @@ class OktaService(
     }
 
     fun removeRole(email: String, groupId: String): Mono<Boolean> {
-        return Mono.fromCallable { client.getGroup(groupId).removeUser(email) }.thenReturn(true)
+        return Mono.fromCallable {
+            val user = client.getUser(email)
+            client.getGroup(groupId).removeUser(user.id)
+        }.thenReturn(true)
     }
 
     fun getUserRoles(email: String): Mono<List<Role>> {

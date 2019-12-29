@@ -19,7 +19,6 @@ data class User(
         val avatarUrl: String? = null,
         val thumbnailUrl: String? = null,
         val bio: String? = null,
-        @DBRef(lazy = true) @JsonManagedReference val events: List<Event> = listOf(),
         @DBRef(lazy = true) @JsonManagedReference val groups: List<Group> = listOf(),
         @DBRef val location: Location? = null
 )

@@ -1,6 +1,5 @@
 package com.withaion.backend.models
 
-import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import org.springframework.data.annotation.Id
@@ -12,12 +11,6 @@ enum class RepeatType {
     NONE, DAILY, WEEKLY, MONTHLY
 }
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-data class Assignment(
-        @DBRef val user: User,
-        @DBRef val role: Role
-)
-
 @Document(collection = "event")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Event(
@@ -27,7 +20,6 @@ data class Event(
         val startDateTime: LocalDateTime,
         val endDateTime: LocalDateTime,
         val repeat: RepeatType = RepeatType.NONE,
-        val assignments: List<Assignment> = listOf(),
         @DBRef val subject: Subject? = null,
         @DBRef(lazy = true) @JsonManagedReference val groups: List<Group> = listOf(),
         @DBRef val location: Location? = null,

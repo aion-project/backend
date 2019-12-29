@@ -20,7 +20,7 @@ okta:
 
 storage:
   protocol: gs
-  bucket: aion-storage
+  bucket: aion-project.appspot.com
   thumbnail:
     width: 256
     height: 256

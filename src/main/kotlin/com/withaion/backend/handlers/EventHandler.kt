@@ -6,6 +6,7 @@ import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Assignment
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
+import com.withaion.backend.services.OktaService
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
@@ -16,7 +17,9 @@ class EventHandler(
         private val subjectRepository: SubjectRepository,
         private val groupRepository: GroupRepository,
         private val locationRepository: LocationRepository,
-        private val userRepository: UserRepository
+        private val userRepository: UserRepository,
+        private val assignmentRepository: AssignmentRepository,
+        private val oktaService: OktaService
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -51,34 +54,31 @@ class EventHandler(
             ResponseDto::class.java
     )
 
+    fun getAssignments(request: ServerRequest) = ServerResponse.ok().body(
+            assignmentRepository.findAllByEvent_Id(request.pathVariable("id")),
+            Assignment::class.java
+    )
+
     fun addAssignment(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
         Mono.zip(
-                userRepository.findById(req.userId),
+                userRepository.findByEmail(req.email),
+                oktaService.getUserRoles(req.email),
                 eventRepository.findById(request.pathVariable("id"))
         ).map {
-            val role = it.t1.roles?.first { role -> role.id == req.roleId }
+            val role = it.t2.firstOrNull { role -> role.name == req.role }
 
             if (role != null) {
-                Triple(it.t1, role, it.t2)
+                Assignment(user = it.t1, event = it.t3, role = req.role)
             } else {
                 throw Exception("no role")
             }
         }.flatMap {
-            // Update objects
-            val assignments: ArrayList<Assignment> = ArrayList(it.third.assignments)
-            assignments.add(Assignment(user = it.first, role = it.second))
-            val events: ArrayList<Event> = ArrayList(it.first.events)
-            events.add(it.third)
-
-            Mono.zip(
-                    userRepository.save(it.first.copy(events = events)),
-                    eventRepository.save(it.third.copy(assignments = assignments))
-            )
+            assignmentRepository.save(it)
         }.flatMap {
             ServerResponse.ok().syncBody("User assigned successfully".toResponse())
         }.onErrorResume {
             if (it is Exception && it.message == "no role") {
-                ServerResponse.badRequest().syncBody("Error".toResponse())
+                ServerResponse.badRequest().syncBody("User doesn\'t have given role".toResponse())
             } else {
                 it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
             }
@@ -87,21 +87,9 @@ class EventHandler(
 
     fun removeAssignment(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(IdDto::class.java).flatMap { req ->
-                Mono.zip(
-                        userRepository.findById(req.id),
-                        eventRepository.findById(request.pathVariable("id"))
-                ).flatMap {
-                    // Update objects
-                    val assignments: ArrayList<Assignment> = ArrayList(it.t2.assignments)
-                    assignments.removeIf { assignment -> assignment.user.id == req.id }
-                    val events: ArrayList<Event> = ArrayList(it.t1.events)
-                    events.remove(it.t2)
-
-                    Mono.zip(
-                            userRepository.save(it.t1.copy(events = events)),
-                            eventRepository.save(it.t2.copy(assignments = assignments))
-                    )
-                }.map { "User removed successfully".toResponse() }
+                assignmentRepository.deleteById(req.id)
+            }.map {
+                "User removed successfully".toResponse()
             },
             ResponseDto::class.java
     )

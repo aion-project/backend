@@ -2,6 +2,7 @@ package com.withaion.backend.handlers
 
 import com.mongodb.DBRef
 import com.okta.sdk.resource.ResourceException
+import com.withaion.backend.data.AssignmentRepository
 import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.*
@@ -22,6 +23,7 @@ class UserHandler(
         private val oktaService: OktaService,
         private val userRepository: UserRepository,
         private val locationRepository: LocationRepository,
+        private val assignmentRepository: AssignmentRepository,
         private val imageService: ImageService,
         private val mongoTemplate: ReactiveMongoTemplate
 ) {
@@ -89,6 +91,7 @@ class UserHandler(
 
                 Mono.zip(
                         mongoTemplate.upsert(Query(), update, Group::class.java),
+                        assignmentRepository.deleteAllByUser(user).thenReturn(true),
                         oktaService.deleteUser(user.email),
                         userRepository.deleteById(user.id!!).thenReturn(true)
                 )

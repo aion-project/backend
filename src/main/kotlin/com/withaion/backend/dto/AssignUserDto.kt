@@ -1,12 +1,12 @@
 package com.withaion.backend.dto
 
 /**
- * DTO for requests to assign and remove event user assignments
+ * DTO for requests to assign event user assignments
  *
- * @property userId - Id of the user
- * @property roleId - Id of the role
+ * @property email - Email of the user
+ * @property role -  Role to be assigned
  * */
 data class AssignUserDto(
-        val userId: String,
-        val roleId: String
+        val email: String,
+        val role: String
 )
