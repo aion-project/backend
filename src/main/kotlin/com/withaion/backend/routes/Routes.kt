@@ -43,13 +43,14 @@ val routerBeans = beans {
                 GET("") { handler.getAll() }
             }
             "/locations".nest {
-                val handler = LocationHandler(ref(), ref(), ref())
+                val handler = LocationHandler(ref(), ref(), ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
+                GET("/{id}/getEvents") { handler.getEvents(it) }
                 POST("/{id}/addResource") { handler.addResource(it) }
                 POST("/{id}/removeResource") { handler.removeResource(it) }
             }
