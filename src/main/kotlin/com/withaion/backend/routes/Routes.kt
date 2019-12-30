@@ -77,6 +77,7 @@ val routerBeans = beans {
             "/events".nest {
                 val handler = EventHandler(ref(), ref(), ref(), ref(), ref(), ref())
 
+                GET("/mine") { handler.getMine(it) }
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }

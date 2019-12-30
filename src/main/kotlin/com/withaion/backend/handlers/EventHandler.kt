@@ -9,7 +9,9 @@ import com.withaion.backend.models.Group
 import com.withaion.backend.services.OktaService
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toFlux
 import java.lang.Exception
 
 class EventHandler(
@@ -22,13 +24,26 @@ class EventHandler(
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
-            eventRepository.findById(request.pathVariable("id")),
+            eventRepository.findById(request.pathVariable("id")).doOnNext { println("Get Event") },
             Event::class.java
     )
 
     fun getAll() = ServerResponse.ok().body(
             eventRepository.findAll(),
             Event::class.java
+    )
+
+    fun getMine(request: ServerRequest) = ServerResponse.ok().body(
+            Flux.from(
+                    request.principal().flatMap {
+                        userRepository.findByEmail(it.name)
+                    }
+            ).flatMap { user ->
+                Flux.merge(
+                        assignmentRepository.findAllByUser_Id(user.id!!).map { it.event }.collectList(),
+                        Mono.just(user.groups.flatMap { it.events })
+                ).flatMap { Flux.fromIterable(it) }
+            }, Event::class.java
     )
 
     fun create(request: ServerRequest) = ServerResponse.ok().body(
