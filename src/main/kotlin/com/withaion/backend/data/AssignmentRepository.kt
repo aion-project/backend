@@ -9,6 +9,6 @@ import reactor.core.publisher.Mono
 interface AssignmentRepository : ReactiveMongoRepository<Assignment, String> {
 
     fun findAllByEvent_Id(event_id: String): Flux<Assignment>
-    fun deleteAllByUser(user: User): Mono<Void>
+    fun deleteByUserEquals(user: User): Mono<Void>
 
 }

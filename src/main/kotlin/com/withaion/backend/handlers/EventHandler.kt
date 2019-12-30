@@ -18,8 +18,7 @@ class EventHandler(
         private val groupRepository: GroupRepository,
         private val locationRepository: LocationRepository,
         private val userRepository: UserRepository,
-        private val assignmentRepository: AssignmentRepository,
-        private val oktaService: OktaService
+        private val assignmentRepository: AssignmentRepository
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -62,13 +61,12 @@ class EventHandler(
     fun addAssignment(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
         Mono.zip(
                 userRepository.findByEmail(req.email),
-                oktaService.getUserRoles(req.email),
                 eventRepository.findById(request.pathVariable("id"))
         ).map {
-            val role = it.t2.firstOrNull { role -> role.name == req.role }
+            val role = it.t1.roles.firstOrNull { role -> role.name == req.role }
 
             if (role != null) {
-                Assignment(user = it.t1, event = it.t3, role = req.role)
+                Assignment(user = it.t1, event = it.t2, role = req.role)
             } else {
                 throw Exception("no role")
             }

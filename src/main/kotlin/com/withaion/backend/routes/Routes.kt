@@ -74,7 +74,7 @@ val routerBeans = beans {
                 POST("/{id}/removeUser") { handler.removeUser(it) }
             }
             "/events".nest {
-                val handler = EventHandler(ref(), ref(), ref(), ref(), ref(), ref(), ref())
+                val handler = EventHandler(ref(), ref(), ref(), ref(), ref(), ref())
 
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }

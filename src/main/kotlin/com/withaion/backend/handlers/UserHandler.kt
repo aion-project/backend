@@ -52,10 +52,12 @@ class UserHandler(
 
     fun create(request: ServerRequest) = request.bodyToMono(UserNewDto::class.java)
             .flatMap {
-                Mono.zip(
-                        oktaService.createUser(it),
-                        userRepository.save(it.toUser())
-                )
+                oktaService.getUserRole().flatMap { userRole ->
+                    Mono.zip(
+                            oktaService.createUser(it),
+                            userRepository.save(it.toUser(userRole))
+                    )
+                }
             }.flatMap {
                 ServerResponse.ok().syncBody("User created successfully".toResponse())
             }.onErrorResume {
@@ -88,7 +90,7 @@ class UserHandler(
 
                 Mono.zip(
                         mongoTemplate.upsert(Query(), update, Group::class.java),
-                        assignmentRepository.deleteAllByUser(user).thenReturn(true),
+                        // TODO - User assignment deletion
                         oktaService.deleteUser(user.email),
                         userRepository.deleteById(user.id!!).thenReturn(true)
                 )

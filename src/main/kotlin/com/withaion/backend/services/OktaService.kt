@@ -20,14 +20,14 @@ class OktaService(
 ) {
 
     fun createUser(user: UserNewDto): Mono<User> {
-        return Mono.fromCallable {
+        return getUserRole().map {
             val builder = UserBuilder.instance()
             builder.setFirstName(user.firstName)
             builder.setLastName(user.lastName)
             builder.setEmail(user.email)
             builder.setLogin(user.email)
             builder.setPassword(user.password.toCharArray())
-            builder.addGroup(getUserRole().id)
+            builder.addGroup(it.id)
             builder.buildAndCreate(client)
         }.doOnError {
             println(it)
@@ -87,14 +87,6 @@ class OktaService(
         }.thenReturn(true)
     }
 
-    fun getUserRoles(email: String): Mono<List<Role>> {
-        return Mono.fromCallable {
-            client.getUser(email).listGroups()
-                    .filterNot { it.profile.name == EVERYONE_GROUP }
-                    .map { Role(it) }
-        }
-    }
-
     fun getRoles(): Flux<Role> {
         return Flux.fromIterable(client.listGroups()
                 .filterNot { it.profile.name == EVERYONE_GROUP }
@@ -106,8 +98,8 @@ class OktaService(
                 .map { Role(it) }
     }
 
-    private fun getUserRole(): Role {
-        return Role(client.listGroups("user", "", "").first())
+    fun getUserRole(): Mono<Role> {
+        return Mono.fromCallable { Role(client.listGroups("user", "", "").first()) }
     }
 
     companion object {

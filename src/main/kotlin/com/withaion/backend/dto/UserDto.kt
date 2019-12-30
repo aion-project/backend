@@ -1,5 +1,6 @@
 package com.withaion.backend.dto
 
+import com.withaion.backend.models.Role
 import com.withaion.backend.models.User
 
 /**
@@ -16,8 +17,8 @@ data class UserNewDto(
         val email: String,
         val password: String
 ) {
-    fun toUser(): User {
-        return User(firstName = firstName, lastName = lastName, email = email)
+    fun toUser(userRole: Role): User {
+        return User(firstName = firstName, lastName = lastName, email = email, roles = listOf(userRole))
     }
 }
 
