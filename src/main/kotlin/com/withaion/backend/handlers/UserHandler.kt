@@ -30,25 +30,22 @@ class UserHandler(
 
     fun getMe(request: ServerRequest) = ServerResponse.ok().body(
             request.principal().flatMap { principal ->
-                userRepository.findByEmail(principal.name).flatMap { user ->
-                    oktaService.getUserRoles(user.email).map {
-                        user.copy(roles = it)
-                    }
-                }
+                userRepository.findByEmail(principal.name)
             },
             User::class.java
     )
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
-            userRepository.findById(request.pathVariable("id")).flatMap { user ->
-                oktaService.getUserRoles(user.email).map {
-                    user.copy(roles = it)
-                }
-            },
+            userRepository.findById(request.pathVariable("id")),
             User::class.java
     )
 
     fun getAll() = ServerResponse.ok().body(
+            userRepository.findAll(),
+            User::class.java
+    )
+
+    fun search(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findAll(),
             User::class.java
     )
@@ -120,17 +117,37 @@ class UserHandler(
     )
 
     fun addRole(request: ServerRequest) = ServerResponse.ok().body(
-            userRepository.findById(request.pathVariable("id")).flatMap { user ->
-                request.bodyToMono(RoleDto::class.java)
-                        .flatMap { oktaService.setRole(user.email, it.roleId) }
+            request.bodyToMono(RoleDto::class.java).flatMap { req ->
+                Mono.zip(
+                        oktaService.getRole(req.roleId),
+                        userRepository.findById(request.pathVariable("id"))
+                ).flatMap {
+                    val roles = it.t2.roles.toMutableSet()
+                    roles.add(it.t1)
+
+                    Mono.zip(
+                            userRepository.save(it.t2.copy(roles = roles.toList())),
+                            oktaService.setRole(it.t2.email, it.t1.id)
+                    )
+                }
             }.map { "Role added successfully".toResponse() },
             ResponseDto::class.java
     )
 
     fun removeRole(request: ServerRequest) = ServerResponse.ok().body(
-            userRepository.findById(request.pathVariable("id")).flatMap { user ->
-                request.bodyToMono(RoleDto::class.java)
-                        .flatMap { oktaService.removeRole(user.email, it.roleId) }
+            request.bodyToMono(RoleDto::class.java).flatMap { req ->
+                Mono.zip(
+                        oktaService.getRole(req.roleId),
+                        userRepository.findById(request.pathVariable("id"))
+                ).flatMap {
+                    val roles = it.t2.roles.toMutableSet()
+                    roles.remove(it.t1)
+
+                    Mono.zip(
+                            userRepository.save(it.t2.copy(roles = roles.toList())),
+                            oktaService.removeRole(it.t2.email, it.t1.id)
+                    )
+                }
             }.map { "Role removed successfully".toResponse() },
             ResponseDto::class.java
     )
@@ -147,7 +164,7 @@ class UserHandler(
 
     fun removeLocation(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findById(request.pathVariable("id"))
-                    .map { user -> user.copy(location = null)}
+                    .map { user -> user.copy(location = null) }
                     .flatMap { userRepository.save(it) }
                     .map { "Role removed successfully".toResponse() },
             ResponseDto::class.java

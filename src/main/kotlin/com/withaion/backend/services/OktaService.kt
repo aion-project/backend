@@ -101,6 +101,11 @@ class OktaService(
                 .map { Role(it) })
     }
 
+    fun getRole(roleId: String): Mono<Role> {
+        return Mono.fromCallable { client.getGroup(roleId) }
+                .map { Role(it) }
+    }
+
     private fun getUserRole(): Role {
         return Role(client.listGroups("user", "", "").first())
     }

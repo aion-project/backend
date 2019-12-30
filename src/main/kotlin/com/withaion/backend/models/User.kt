@@ -15,7 +15,7 @@ data class User(
         val email: String,
         val enabled: Boolean = true,
         val active: Boolean? = false,
-        val roles: List<Role>? = null,
+        val roles: List<Role> = listOf(),
         val avatarUrl: String? = null,
         val thumbnailUrl: String? = null,
         val bio: String? = null,
