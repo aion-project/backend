@@ -7,6 +7,7 @@ import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
+import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
 import com.withaion.backend.models.User
 import com.withaion.backend.services.ImageService
@@ -17,6 +18,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.util.Base64Utils
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 class UserHandler(
@@ -96,6 +98,17 @@ class UserHandler(
                 )
             }.map { "User deleted successfully".toResponse() },
             ResponseDto::class.java
+    )
+
+    fun events(request: ServerRequest) = ServerResponse.ok().body(
+            Flux.from(
+                    userRepository.findById(request.pathVariable("id"))
+            ).flatMap { user ->
+                Flux.merge(
+                        assignmentRepository.findAllByUser_Id(user.id!!).map { it.event }.collectList(),
+                        Mono.just(user.groups.flatMap { it.events })
+                ).flatMap { Flux.fromIterable(it) }
+            }, Event::class.java
     )
 
     fun setEnable(request: ServerRequest) = ServerResponse.ok().body(
