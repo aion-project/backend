@@ -24,7 +24,7 @@ class EventHandler(
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
-            eventRepository.findById(request.pathVariable("id")).doOnNext { println("Get Event") },
+            eventRepository.findById(request.pathVariable("id")),
             Event::class.java
     )
 
@@ -61,9 +61,9 @@ class EventHandler(
 
     fun update(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(EventUpdateDto::class.java)
-                    .flatMap { updateGroup ->
+                    .flatMap {event ->
                         eventRepository.findById(request.pathVariable("id"))
-                                .flatMap { eventRepository.save(updateGroup.toUpdatedEvent(it)) }
+                                .flatMap { eventRepository.save(event.toUpdatedEvent(it)) }
                     }.map { "Event updated successfully".toResponse() },
             ResponseDto::class.java
     )
