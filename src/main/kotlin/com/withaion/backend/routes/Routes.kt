@@ -51,7 +51,7 @@ val routerBeans = beans {
                 POST("/") { handler.create(it) }
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
-                GET("/{id}/events") { handler.getEvents(it) }
+                GET("/{id}/events") { handler.events(it) }
                 POST("/{id}/addResource") { handler.addResource(it) }
                 POST("/{id}/removeResource") { handler.removeResource(it) }
             }

@@ -65,7 +65,7 @@ class LocationHandler(
             ResponseDto::class.java
     )
 
-    fun getEvents(request: ServerRequest) = ServerResponse.ok().body(
+    fun events(request: ServerRequest) = ServerResponse.ok().body(
             eventRepository.findAllByLocation_Id(request.pathVariable("id")),
             Event::class.java
     )
