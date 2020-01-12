@@ -197,7 +197,7 @@ class EventHandler(
                     val event = it.t2
 
                     rescheduleRepository.save(rescheduleRequest.toReschedule(event, user)).flatMap {reschedule ->
-                        val rescheduleRequests = event.reschedules as ArrayList<Reschedule>
+                        val rescheduleRequests = ArrayList(event.reschedules)
                         rescheduleRequests.add(reschedule)
 
                         eventRepository.save(event.copy(reschedules = rescheduleRequests))
