@@ -6,6 +6,7 @@ import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Assignment
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
+import com.withaion.backend.models.Reschedule
 import com.withaion.backend.services.OktaService
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -20,7 +21,8 @@ class EventHandler(
         private val groupRepository: GroupRepository,
         private val locationRepository: LocationRepository,
         private val userRepository: UserRepository,
-        private val assignmentRepository: AssignmentRepository
+        private val assignmentRepository: AssignmentRepository,
+        private val rescheduleRepository: RescheduleRepository
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -61,7 +63,7 @@ class EventHandler(
 
     fun update(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(EventUpdateDto::class.java)
-                    .flatMap {event ->
+                    .flatMap { event ->
                         eventRepository.findById(request.pathVariable("id"))
                                 .flatMap { eventRepository.save(event.toUpdatedEvent(it)) }
                     }.map { "Event updated successfully".toResponse() },
@@ -182,6 +184,26 @@ class EventHandler(
                     .map { event -> event.copy(location = null) }
                     .flatMap { eventRepository.save(it) }
                     .map { "Location removed successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun reschedule(request: ServerRequest) = ServerResponse.ok().body(
+            request.bodyToMono(RescheduleRequestDto::class.java).flatMap { rescheduleRequest ->
+                Mono.zip(
+                        request.principal().flatMap { principal -> userRepository.findByEmail(principal.name) },
+                        eventRepository.findById(request.pathVariable("id"))
+                ).flatMap {
+                    val user = it.t1
+                    val event = it.t2
+
+                    rescheduleRepository.save(rescheduleRequest.toReschedule(event, user)).flatMap {reschedule ->
+                        val rescheduleRequests = event.reschedules as ArrayList<Reschedule>
+                        rescheduleRequests.add(reschedule)
+
+                        eventRepository.save(event.copy(reschedules = rescheduleRequests))
+                    }
+                }
+            }.map { "Reschedule request successful".toResponse() },
             ResponseDto::class.java
     )
 }

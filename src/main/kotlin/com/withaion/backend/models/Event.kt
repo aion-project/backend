@@ -23,6 +23,7 @@ data class Event(
         val repeat: RepeatType = RepeatType.NONE,
         @DBRef val subject: Subject? = null,
         @DBRef(lazy = true) @JsonManagedReference val groups: List<Group> = listOf(),
+        @DBRef(lazy = true) @JsonManagedReference val reschedules: List<Reschedule> = listOf(),
         @DBRef val location: Location? = null,
         @DBRef val createdBy: User? = null
 )
