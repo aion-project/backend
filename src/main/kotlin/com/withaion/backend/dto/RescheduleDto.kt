@@ -1,16 +1,14 @@
 package com.withaion.backend.dto
 
-import com.withaion.backend.models.Event
-import com.withaion.backend.models.RepeatType
-import com.withaion.backend.models.Reschedule
-import com.withaion.backend.models.User
+import com.withaion.backend.models.*
 import java.time.LocalDateTime
 
 class RescheduleRequestDto(
         val oldDateTime: LocalDateTime,
-        val newDateTime: LocalDateTime
+        val newDateTime: LocalDateTime,
+        val type: RescheduleType
 ) {
     fun toReschedule(event: Event, requestedBy: User): Reschedule {
-        return Reschedule(event = event, oldDateTime = oldDateTime, newDateTime = newDateTime, requestedBy = requestedBy)
+        return Reschedule(event = event, oldDateTime = oldDateTime, newDateTime = newDateTime, type = type, requestedBy = requestedBy)
     }
 }
