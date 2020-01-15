@@ -6,14 +6,11 @@ import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Assignment
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
-import com.withaion.backend.models.Reschedule
-import com.withaion.backend.services.OktaService
+import com.withaion.backend.utils.EventUtil
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import reactor.core.publisher.toFlux
-import java.lang.Exception
 
 class EventHandler(
         private val eventRepository: EventRepository,
@@ -44,7 +41,7 @@ class EventHandler(
                 Flux.merge(
                         assignmentRepository.findAllByUser_Id(user.id!!).map { it.event }.collectList(),
                         Mono.just(user.groups.flatMap { it.events })
-                ).flatMap { Flux.fromIterable(it) }
+                ).flatMap { Flux.fromIterable(EventUtil.expandEvents(it)) }
             }, Event::class.java
     )
 

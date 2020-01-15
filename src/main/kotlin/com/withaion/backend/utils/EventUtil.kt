@@ -18,7 +18,7 @@ object EventUtil {
 
     fun expandEvents(events: List<Event>, until: LocalDateTime? = null): List<Event> {
         return events.flatMap { event ->
-            return when (event.repeat) {
+            return@flatMap when (event.repeat) {
                 RepeatType.NONE -> listOf(event)
                 RepeatType.DAILY -> {
                     val eventList = mutableListOf<Event>()
@@ -37,7 +37,7 @@ object EventUtil {
                         eventList.addAll(genEvents(it.newDateTime.toDate(), it.newDateTime.plusHours(6).toDate(), event, Frequency.DAILY))
                     }
                     eventList.forEach { println(it) }
-                    return eventList
+                    eventList
                 }
                 RepeatType.WEEKLY -> {
                     val eventList = mutableListOf<Event>()
@@ -56,7 +56,7 @@ object EventUtil {
                         eventList.addAll(genEvents(it.newDateTime.toDate(), it.newDateTime.plusDays(1).toDate(), event, Frequency.WEEKLY))
                     }
                     eventList.forEach { println(it) }
-                    return eventList
+                    eventList
                 }
                 else -> listOf(event)
             }
