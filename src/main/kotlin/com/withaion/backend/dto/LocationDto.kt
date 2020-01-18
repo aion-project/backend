@@ -14,10 +14,11 @@ data class LocationNewDto(
         val name: String,
         val level: String,
         val description: String?,
+        val quantity: Int,
         val ac: Boolean
 ) {
     fun toLocation(): Location {
-        return Location(name = name, level = level, description = description, ac = ac)
+        return Location(name = name, level = level, description = description, quantity = quantity, ac = ac)
     }
 }
 
@@ -33,6 +34,7 @@ data class LocationUpdateDto(
         val name: String?,
         val level: String?,
         val description: String?,
+        val quantity: Int?,
         val ac: Boolean?
 ) {
     fun toUpdatedLocation(location: Location): Location {
@@ -45,6 +47,9 @@ data class LocationUpdateDto(
         }
         description?.let {
             currentLocation = currentLocation.copy(description = description)
+        }
+        quantity?.let {
+            currentLocation = currentLocation.copy(quantity = quantity)
         }
         ac?.let {
             currentLocation = currentLocation.copy(ac = ac)

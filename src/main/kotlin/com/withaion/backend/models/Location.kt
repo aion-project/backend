@@ -13,6 +13,7 @@ data class Location(
         val name: String,
         val level: String,
         val description: String? = null,
+        val quantity: Int = 0,
         val ac: Boolean = false,
         @DBRef(lazy = true) @JsonManagedReference val resources: List<Resource> = listOf()
 )
