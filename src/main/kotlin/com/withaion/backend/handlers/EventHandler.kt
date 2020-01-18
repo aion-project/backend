@@ -16,7 +16,7 @@ class EventHandler(
         private val eventRepository: EventRepository,
         private val subjectRepository: SubjectRepository,
         private val groupRepository: GroupRepository,
-        private val locationRepository: LocationRepository,
+        private val scheduleRepository: ScheduleRepository,
         private val userRepository: UserRepository,
         private val assignmentRepository: AssignmentRepository,
         private val rescheduleRepository: RescheduleRepository
@@ -47,14 +47,20 @@ class EventHandler(
 
     fun create(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(EventNewDto::class.java)
-                    .flatMap { eventRepository.save(it.toEvent()) }
+                    .flatMap { eventNewDto ->
+                        scheduleRepository.save(eventNewDto.getSchedule()).flatMap {
+                            eventRepository.save(eventNewDto.toEvent(listOf(it)))
+                        }
+                    }
                     .map { "Event created successfully".toResponse() },
             ResponseDto::class.java
     )
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
-            eventRepository.deleteById(request.pathVariable("id")).thenReturn(true)
-                    .map { "Event deleted successfully".toResponse() },
+            Mono.zip(
+                    eventRepository.deleteById(request.pathVariable("id")).thenReturn(true),
+                    scheduleRepository.deleteAllByEvent_Id(request.pathVariable("id")).thenReturn(true)
+            ).map { "Event deleted successfully".toResponse() },
             ResponseDto::class.java
     )
 
@@ -166,24 +172,6 @@ class EventHandler(
             ResponseDto::class.java
     )
 
-    fun setLocation(request: ServerRequest) = ServerResponse.ok().body(
-            eventRepository.findById(request.pathVariable("id")).flatMap { event ->
-                request.bodyToMono(IdDto::class.java)
-                        .flatMap { locationRepository.findById(it.id) }
-                        .map { event.copy(location = it) }
-                        .flatMap { eventRepository.save(it) }
-            }.map { "Location added successfully".toResponse() },
-            ResponseDto::class.java
-    )
-
-    fun removeLocation(request: ServerRequest) = ServerResponse.ok().body(
-            eventRepository.findById(request.pathVariable("id"))
-                    .map { event -> event.copy(location = null) }
-                    .flatMap { eventRepository.save(it) }
-                    .map { "Location removed successfully".toResponse() },
-            ResponseDto::class.java
-    )
-
     fun reschedule(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(RescheduleRequestDto::class.java).flatMap { rescheduleRequest ->
                 Mono.zip(
@@ -193,7 +181,7 @@ class EventHandler(
                     val user = it.t1
                     val event = it.t2
 
-                    rescheduleRepository.save(rescheduleRequest.toReschedule(event, user)).flatMap {reschedule ->
+                    rescheduleRepository.save(rescheduleRequest.toReschedule(event, user)).flatMap { reschedule ->
                         val rescheduleRequests = ArrayList(event.reschedules)
                         rescheduleRequests.add(reschedule)
 

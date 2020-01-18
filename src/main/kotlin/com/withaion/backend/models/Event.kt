@@ -8,22 +8,15 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-enum class RepeatType {
-    NONE, DAILY, WEEKLY, MONTHLY
-}
-
 @Document(collection = "event")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Event(
         @Id val id: String? = null,
         val name: String,
         val description: String?,
-        val startDateTime: LocalDateTime,
-        val endDateTime: LocalDateTime,
-        val repeat: RepeatType = RepeatType.NONE,
         @DBRef val subject: Subject? = null,
+        @DBRef(lazy = true) @JsonManagedReference val schedules: List<Schedule> = listOf(),
         @DBRef(lazy = true) @JsonManagedReference val groups: List<Group> = listOf(),
         @DBRef(lazy = true) @JsonManagedReference val reschedules: List<Reschedule> = listOf(),
-        @DBRef val location: Location? = null,
         @DBRef val createdBy: User? = null
 )

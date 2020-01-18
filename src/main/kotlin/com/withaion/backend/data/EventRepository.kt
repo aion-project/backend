@@ -7,7 +7,4 @@ import reactor.core.publisher.Flux
 
 interface EventRepository : ReactiveMongoRepository<Event, String> {
 
-    fun findAllByLocation_Id(locationId: String): Flux<Event>
-//    fun findAllByLocation_IdAndStart(locationId: String): Flux<Event>
-
 }

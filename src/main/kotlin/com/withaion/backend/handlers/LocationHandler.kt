@@ -3,6 +3,7 @@ package com.withaion.backend.handlers
 import com.withaion.backend.data.EventRepository
 import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.ResourceRepository
+import com.withaion.backend.data.ScheduleRepository
 import com.withaion.backend.dto.LocationChangeResourceDto
 import com.withaion.backend.dto.LocationNewDto
 import com.withaion.backend.dto.LocationUpdateDto
@@ -11,6 +12,7 @@ import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Location
 import com.withaion.backend.models.Resource
+import com.withaion.backend.models.Schedule
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
@@ -21,7 +23,7 @@ import reactor.core.publisher.Mono
 class LocationHandler(
         private val locationRepository: LocationRepository,
         private val resourceRepository: ResourceRepository,
-        private val eventRepository: EventRepository,
+        private val scheduleRepository: ScheduleRepository,
         private val mongoTemplate: ReactiveMongoTemplate
 ) {
 
@@ -66,8 +68,8 @@ class LocationHandler(
     )
 
     fun events(request: ServerRequest) = ServerResponse.ok().body(
-            eventRepository.findAllByLocation_Id(request.pathVariable("id")),
-            Event::class.java
+            scheduleRepository.findAllByLocation_Id(request.pathVariable("id")),
+            Schedule::class.java
     )
 
     fun addResource(request: ServerRequest) = ServerResponse.ok().body(
