@@ -7,17 +7,10 @@ import java.time.LocalDateTime
 
 class EventNewDto(
         val name: String,
-        val description: String?,
-        val startDateTime: LocalDateTime,
-        val endDateTime: LocalDateTime,
-        val repeat: RepeatType = RepeatType.NONE
+        val description: String?
 ) {
-    fun getSchedule(): Schedule {
-        return Schedule(startDateTime = startDateTime, endDateTime = endDateTime, repeatType = repeat)
-    }
-
-    fun toEvent(schedule: List<Schedule> = listOf()): Event {
-        return Event(name = name, description = description, schedules = schedule)
+    fun toEvent(): Event {
+        return Event(name = name, description = description)
     }
 }
 

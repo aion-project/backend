@@ -47,10 +47,8 @@ class EventHandler(
 
     fun create(request: ServerRequest) = ServerResponse.ok().body(
             request.bodyToMono(EventNewDto::class.java)
-                    .flatMap { eventNewDto ->
-                        scheduleRepository.save(eventNewDto.getSchedule()).flatMap {
-                            eventRepository.save(eventNewDto.toEvent(listOf(it)))
-                        }
+                    .flatMap {
+                        eventRepository.save(it.toEvent())
                     }
                     .map { "Event created successfully".toResponse() },
             ResponseDto::class.java
