@@ -97,6 +97,7 @@ val routerBeans = beans {
                 val handler = ScheduleHandler(ref(), ref(), ref())
 
                 POST("/") { handler.create(it) }
+                DELETE("/{id}") { handler.delete(it) }
                 POST("/{id}/setLocation") { handler.setLocation(it) }
                 POST("/{id}/removeLocation") { handler.removeLocation(it) }
             }

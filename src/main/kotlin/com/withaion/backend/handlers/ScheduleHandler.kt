@@ -6,6 +6,7 @@ import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Assignment
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
+import com.withaion.backend.models.Schedule
 import com.withaion.backend.utils.EventUtil
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -23,10 +24,28 @@ class ScheduleHandler(
                 Mono.zip(
                         locationRepository.findById(scheduleNewDto.location),
                         eventRepository.findById(scheduleNewDto.event)
-                ).flatMap {
-                    scheduleRepository.save(scheduleNewDto.toSchedule(it.t1, it.t2))
+                ).flatMap { locationEvent ->
+                    val schedules = ArrayList<Schedule>(locationEvent.t2.schedules)
+                    scheduleRepository.save(scheduleNewDto.toSchedule(locationEvent.t1, locationEvent.t2)).flatMap {
+                        schedules.add(it)
+                        eventRepository.save(locationEvent.t2.copy(schedules = schedules))
+                    }
                 }
             }.map { "Schedule created successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun delete(request: ServerRequest) = ServerResponse.ok().body(
+            scheduleRepository.findById(request.pathVariable("id")).flatMap { schedule ->
+                eventRepository.findById(schedule.event!!.id!!).flatMap { event ->
+                    val schedules = ArrayList<Schedule>(event.schedules)
+                    schedules.remove(schedule)
+
+                    eventRepository.save(event.copy(schedules = schedules)).flatMap {
+                        scheduleRepository.delete(schedule).thenReturn(true)
+                    }
+                }
+            }.map { "Schedule removed successfully".toResponse() },
             ResponseDto::class.java
     )
 

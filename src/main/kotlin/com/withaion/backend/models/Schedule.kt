@@ -18,6 +18,6 @@ data class Schedule(
         val startDateTime: LocalDateTime,
         val endDateTime: LocalDateTime,
         val repeatType: RepeatType = RepeatType.NONE,
-        @DBRef(lazy = true) @JsonBackReference val event: Event? = null,
-        @DBRef(lazy = true) val location: Location? = null
+        @DBRef @JsonBackReference val event: Event? = null,
+        @DBRef val location: Location? = null
 )
