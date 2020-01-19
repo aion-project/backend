@@ -42,7 +42,8 @@ class EventHandler(
                         assignmentRepository.findAllByUser_Id(user.id!!).map { it.event }.collectList(),
                         Mono.just(user.groups.flatMap { it.events })
                 ).flatMap { Flux.fromIterable(EventUtil.expandEvents(it)) }
-            }, Event::class.java
+            },
+            ScheduledEvent::class.java
     )
 
     fun create(request: ServerRequest) = ServerResponse.ok().body(

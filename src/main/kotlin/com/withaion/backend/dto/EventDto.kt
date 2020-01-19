@@ -29,3 +29,10 @@ class EventUpdateDto(
         return currentEvent
     }
 }
+
+class ScheduledEvent(
+        val eventId: String,
+        val name: String,
+        val startDateTime: LocalDateTime,
+        val endDateTime: LocalDateTime
+)

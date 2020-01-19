@@ -17,6 +17,7 @@ data class Schedule(
         @Id val id: String? = null,
         val startDateTime: LocalDateTime,
         val endDateTime: LocalDateTime,
+        val until: LocalDateTime? = null,
         val repeatType: RepeatType = RepeatType.NONE,
         @DBRef @JsonBackReference val event: Event? = null,
         @DBRef val location: Location? = null

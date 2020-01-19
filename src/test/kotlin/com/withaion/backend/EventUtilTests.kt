@@ -12,14 +12,15 @@ import java.time.LocalDateTime
 @ContextConfiguration
 class EventUtilTests {
 
-    // TODO - Write tests for event expansion
-//    @Test
-//    fun testWeeklyExpanding() {
-//        println("---- Test Start ----")
-//        EventUtil.expandEvents(listOf(weeklyRepeatingEvent))
-//        println("---- Test End ----")
-//        assert(true)
-//    }
+    @Test
+    fun testWeeklyExpanding() {
+        println("---- Test Start ----")
+        EventUtil.expandEvents(listOf(weeklyRepeatingEvent)).forEach {
+            println(it.startDateTime.toString() + " " + it.endDateTime.toString())
+        }
+        println("---- Test End ----")
+        assert(true)
+    }
 //
 //    @Test
 //    fun testDailyExpanding() {
@@ -29,31 +30,36 @@ class EventUtilTests {
 //        assert(true)
 //    }
 //
-//    companion object {
-//        val weeklyRepeatingEvent = Event(
-//                id = "testWeekly",
-//                name = "Test Weekly",
-//                description = "Test Weekly Description",
-//                startDateTime = LocalDateTime.of(2019, 4, 24, 8, 0),
-//                endDateTime = LocalDateTime.of(2019, 4, 24, 10, 0),
-//                repeat = RepeatType.WEEKLY,
-//                reschedules = listOf(
-//                        Reschedule(
-//                                id = "test",
-//                                oldDateTime = LocalDateTime.of(2019, 5, 1, 8, 0),
-//                                newDateTime = LocalDateTime.of(2019, 5, 2, 8, 0),
-//                                type = RescheduleType.PERM,
-//                                status = RescheduleStatus.PENDING
-//                        ),
-//                        Reschedule(
-//                                id = "test",
-//                                oldDateTime = LocalDateTime.of(2019, 5, 2, 8, 0),
-//                                newDateTime = LocalDateTime.of(2019, 5, 2, 6, 0),
-//                                type = RescheduleType.TEMP,
-//                                status = RescheduleStatus.PENDING
-//                        )
-//                )
-//        )
+    companion object {
+        val weeklyRepeatingEvent = Event(
+                id = "testWeekly",
+                name = "Test Weekly",
+                description = "Test Weekly Description",
+                schedules = listOf(
+                        Schedule(
+                                id = "testSchedule",
+                                startDateTime = LocalDateTime.of(2019, 4, 24, 8, 0),
+                                endDateTime = LocalDateTime.of(2019, 4, 24, 10, 0),
+                                repeatType = RepeatType.WEEKLY
+                        )
+                ),
+                reschedules = listOf(
+                        Reschedule(
+                                id = "test",
+                                oldDateTime = LocalDateTime.of(2019, 5, 1, 8, 0),
+                                newDateTime = LocalDateTime.of(2019, 5, 2, 8, 0),
+                                type = RescheduleType.PERM,
+                                status = RescheduleStatus.PENDING
+                        ),
+                        Reschedule(
+                                id = "test",
+                                oldDateTime = LocalDateTime.of(2019, 5, 2, 8, 0),
+                                newDateTime = LocalDateTime.of(2019, 5, 2, 6, 0),
+                                type = RescheduleType.TEMP,
+                                status = RescheduleStatus.PENDING
+                        )
+                )
+        )
 //        val dailyRepeatingEvent = Event(
 //                id = "testDaily",
 //                name = "Test Daily",
@@ -78,6 +84,6 @@ class EventUtilTests {
 //                        )
 //                )
 //        )
-//    }
+    }
 
 }
