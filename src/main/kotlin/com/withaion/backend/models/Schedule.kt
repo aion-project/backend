@@ -2,6 +2,7 @@ package com.withaion.backend.models
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
@@ -20,5 +21,6 @@ data class Schedule(
         val until: LocalDateTime? = null,
         val repeatType: RepeatType = RepeatType.NONE,
         @DBRef @JsonBackReference val event: Event? = null,
-        @DBRef val location: Location? = null
+        @DBRef val location: Location? = null,
+        @DBRef(lazy = true) @JsonManagedReference val users: List<User> = listOf()
 )

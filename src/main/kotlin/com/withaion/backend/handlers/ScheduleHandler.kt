@@ -11,7 +11,8 @@ import reactor.core.publisher.Mono
 class ScheduleHandler(
         private val scheduleRepository: ScheduleRepository,
         private val locationRepository: LocationRepository,
-        private val eventRepository: EventRepository
+        private val eventRepository: EventRepository,
+        private val userRepository: UserRepository
 ) {
 
     fun create(request: ServerRequest) = ServerResponse.ok().body(
@@ -63,38 +64,42 @@ class ScheduleHandler(
     )
 
     // TODO - Implement user assigment and removal
-//    fun addUser(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
-//        Mono.zip(
-//                userRepository.findByEmail(req.email),
-//                eventRepository.findById(request.pathVariable("id"))
-//        ).map {
-//            val role = it.t1.roles.firstOrNull { role -> role.name == req.role }
-//
-//            if (role != null) {
-//                Assignment(user = it.t1, event = it.t2, role = req.role)
-//            } else {
-//                throw Exception("no role")
-//            }
-//        }.flatMap {
-//            assignmentRepository.save(it)
-//        }.flatMap {
-//            ServerResponse.ok().syncBody("User assigned successfully".toResponse())
-//        }.onErrorResume {
-//            if (it is Exception && it.message == "no role") {
-//                ServerResponse.badRequest().syncBody("User doesn\'t have given role".toResponse())
-//            } else {
-//                it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
-//            }
-//        }
-//    }
-//
-//    fun removeUser(request: ServerRequest) = ServerResponse.ok().body(
-//            request.bodyToMono(IdDto::class.java).flatMap { req ->
-//                assignmentRepository.deleteById(req.id)
-//            }.map {
-//                "User removed successfully".toResponse()
-//            },
-//            ResponseDto::class.java
-//    )
+    fun addUser(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
+        Mono.zip(
+                userRepository.findByEmail(req.email),
+                scheduleRepository.findById(request.pathVariable("id"))
+        ).flatMap {
+            val users = ArrayList(it.t2.users)
+            users.add(it.t1)
+            val schedules = ArrayList(it.t1.schedules)
+            schedules.add(it.t2)
+
+            Mono.zip(
+                    userRepository.save(it.t1.copy(schedules = schedules)),
+                    scheduleRepository.save(it.t2.copy(users = users))
+            )
+        }.flatMap {
+            ServerResponse.ok().syncBody("User assigned successfully".toResponse())
+        }
+    }
+
+    fun removeUser(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
+        Mono.zip(
+                userRepository.findByEmail(req.email),
+                scheduleRepository.findById(request.pathVariable("id"))
+        ).flatMap {
+            val users = ArrayList(it.t2.users)
+            users.remove(it.t1)
+            val schedules = ArrayList(it.t1.schedules)
+            schedules.remove(it.t2)
+
+            Mono.zip(
+                    userRepository.save(it.t1.copy(schedules = schedules)),
+                    scheduleRepository.save(it.t2.copy(users = users))
+            )
+        }.flatMap {
+            ServerResponse.ok().syncBody("User removed successfully".toResponse())
+        }
+    }
 
 }

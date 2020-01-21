@@ -91,12 +91,14 @@ val routerBeans = beans {
                 POST("/{id}/reschedule") { handler.reschedule(it) }
             }
             "/schedule".nest {
-                val handler = ScheduleHandler(ref(), ref(), ref())
+                val handler = ScheduleHandler(ref(), ref(), ref(), ref())
 
                 POST("/") { handler.create(it) }
                 DELETE("/{id}") { handler.delete(it) }
                 POST("/{id}/setLocation") { handler.setLocation(it) }
                 POST("/{id}/removeLocation") { handler.removeLocation(it) }
+                POST("/{id}/addUser") { handler.addUser(it) }
+                POST("/{id}/removeUser") { handler.removeUser(it) }
             }
             "/subjects".nest {
                 val handler = SubjectHandler(ref(), ref())
