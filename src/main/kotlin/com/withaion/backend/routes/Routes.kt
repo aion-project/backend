@@ -15,7 +15,7 @@ val routerBeans = beans {
                 GET("/{category}/{filename:.+}") { handler.getBlob(it) }
             }
             "/users".nest {
-                val handler = UserHandler(ref(), ref(), ref(), ref(), ref(), ref())
+                val handler = UserHandler(ref(), ref(), ref(), ref(), ref())
 
                 // Personal endpoints
                 "/me".nest {
@@ -76,7 +76,7 @@ val routerBeans = beans {
                 POST("/{id}/removeUser") { handler.removeUser(it) }
             }
             "/events".nest {
-                val handler = EventHandler(ref(), ref(), ref(), ref(), ref(), ref(), ref())
+                val handler = EventHandler(ref(), ref(), ref(), ref(), ref(), ref())
 
                 GET("/mine") { handler.getMine(it) }
                 GET("/{id}") { handler.get(it) }
@@ -84,9 +84,6 @@ val routerBeans = beans {
                 POST("/") { handler.create(it) }
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
-                GET("/{id}/getAssignments") { handler.getAssignments(it) }
-                POST("/{id}/addAssignment") { handler.addAssignment(it) }
-                POST("/{id}/removeAssignment") { handler.removeAssignment(it) }
                 POST("/{id}/setSubject") { handler.setSubject(it) }
                 POST("/{id}/removeSubject") { handler.removeSubject(it) }
                 POST("/{id}/addGroup") { handler.addGroup(it) }

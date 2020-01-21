@@ -3,7 +3,6 @@ package com.withaion.backend.handlers
 import com.withaion.backend.data.*
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.Assignment
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
 import com.withaion.backend.utils.EventUtil
@@ -18,7 +17,6 @@ class EventHandler(
         private val groupRepository: GroupRepository,
         private val scheduleRepository: ScheduleRepository,
         private val userRepository: UserRepository,
-        private val assignmentRepository: AssignmentRepository,
         private val rescheduleRepository: RescheduleRepository
 ) {
 
@@ -38,10 +36,7 @@ class EventHandler(
                         userRepository.findByEmail(it.name)
                     }
             ).flatMap { user ->
-                Flux.merge(
-                        assignmentRepository.findAllByUser_Id(user.id!!).map { it.event }.collectList(),
-                        Mono.just(user.groups.flatMap { it.events })
-                ).flatMap { Flux.fromIterable(EventUtil.expandEvents(it)) }
+                Flux.fromIterable(EventUtil.expandEvents(user.groups.flatMap { it.events }))
             },
             ScheduledEvent::class.java
     )
@@ -69,45 +64,6 @@ class EventHandler(
                         eventRepository.findById(request.pathVariable("id"))
                                 .flatMap { eventRepository.save(event.toUpdatedEvent(it)) }
                     }.map { "Event updated successfully".toResponse() },
-            ResponseDto::class.java
-    )
-
-    fun getAssignments(request: ServerRequest) = ServerResponse.ok().body(
-            assignmentRepository.findAllByEvent_Id(request.pathVariable("id")),
-            Assignment::class.java
-    )
-
-    fun addAssignment(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
-        Mono.zip(
-                userRepository.findByEmail(req.email),
-                eventRepository.findById(request.pathVariable("id"))
-        ).map {
-            val role = it.t1.roles.firstOrNull { role -> role.name == req.role }
-
-            if (role != null) {
-                Assignment(user = it.t1, event = it.t2, role = req.role)
-            } else {
-                throw Exception("no role")
-            }
-        }.flatMap {
-            assignmentRepository.save(it)
-        }.flatMap {
-            ServerResponse.ok().syncBody("User assigned successfully".toResponse())
-        }.onErrorResume {
-            if (it is Exception && it.message == "no role") {
-                ServerResponse.badRequest().syncBody("User doesn\'t have given role".toResponse())
-            } else {
-                it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
-            }
-        }
-    }
-
-    fun removeAssignment(request: ServerRequest) = ServerResponse.ok().body(
-            request.bodyToMono(IdDto::class.java).flatMap { req ->
-                assignmentRepository.deleteById(req.id)
-            }.map {
-                "User removed successfully".toResponse()
-            },
             ResponseDto::class.java
     )
 

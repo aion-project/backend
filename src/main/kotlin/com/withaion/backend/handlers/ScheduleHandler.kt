@@ -3,14 +3,9 @@ package com.withaion.backend.handlers
 import com.withaion.backend.data.*
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.Assignment
-import com.withaion.backend.models.Event
-import com.withaion.backend.models.Group
 import com.withaion.backend.models.Schedule
-import com.withaion.backend.utils.EventUtil
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 class ScheduleHandler(
@@ -66,4 +61,40 @@ class ScheduleHandler(
                     .map { "Location removed successfully".toResponse() },
             ResponseDto::class.java
     )
+
+    // TODO - Implement user assigment and removal
+//    fun addUser(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
+//        Mono.zip(
+//                userRepository.findByEmail(req.email),
+//                eventRepository.findById(request.pathVariable("id"))
+//        ).map {
+//            val role = it.t1.roles.firstOrNull { role -> role.name == req.role }
+//
+//            if (role != null) {
+//                Assignment(user = it.t1, event = it.t2, role = req.role)
+//            } else {
+//                throw Exception("no role")
+//            }
+//        }.flatMap {
+//            assignmentRepository.save(it)
+//        }.flatMap {
+//            ServerResponse.ok().syncBody("User assigned successfully".toResponse())
+//        }.onErrorResume {
+//            if (it is Exception && it.message == "no role") {
+//                ServerResponse.badRequest().syncBody("User doesn\'t have given role".toResponse())
+//            } else {
+//                it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
+//            }
+//        }
+//    }
+//
+//    fun removeUser(request: ServerRequest) = ServerResponse.ok().body(
+//            request.bodyToMono(IdDto::class.java).flatMap { req ->
+//                assignmentRepository.deleteById(req.id)
+//            }.map {
+//                "User removed successfully".toResponse()
+//            },
+//            ResponseDto::class.java
+//    )
+
 }

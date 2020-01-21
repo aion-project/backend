@@ -1,8 +1,6 @@
 package com.withaion.backend.handlers
 
-import com.mongodb.DBRef
 import com.okta.sdk.resource.ResourceException
-import com.withaion.backend.data.AssignmentRepository
 import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.*
@@ -25,7 +23,6 @@ class UserHandler(
         private val oktaService: OktaService,
         private val userRepository: UserRepository,
         private val locationRepository: LocationRepository,
-        private val assignmentRepository: AssignmentRepository,
         private val imageService: ImageService,
         private val mongoTemplate: ReactiveMongoTemplate
 ) {
@@ -104,10 +101,7 @@ class UserHandler(
             Flux.from(
                     userRepository.findById(request.pathVariable("id"))
             ).flatMap { user ->
-                Flux.merge(
-                        assignmentRepository.findAllByUser_Id(user.id!!).map { it.event }.collectList(),
-                        Mono.just(user.groups.flatMap { it.events })
-                ).flatMap { Flux.fromIterable(it) }
+                Flux.fromIterable(user.groups.flatMap { it.events })
             }, Event::class.java
     )
 
