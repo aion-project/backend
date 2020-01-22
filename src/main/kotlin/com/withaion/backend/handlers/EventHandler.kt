@@ -32,11 +32,18 @@ class EventHandler(
 
     fun getMine(request: ServerRequest) = ServerResponse.ok().body(
             Flux.from(
-                    request.principal().flatMap {
-                        userRepository.findByEmail(it.name)
-                    }
-            ).flatMap { user ->
-                Flux.fromIterable(EventUtil.expandEvents(user.groups.flatMap { it.events }))
+                    request.principal().flatMap { userRepository.findByEmail(it.name) }
+            ).map { user ->
+                val events = mutableListOf<Event>()
+                user.groups.forEach {
+                    events.addAll(it.events)
+                }
+                user.schedules.forEach {
+                    it.event?.let { it1 -> events.add(it1) }
+                }
+                events
+            }.flatMap { events ->
+                Flux.fromIterable(EventUtil.expandEvents(events))
             },
             ScheduledEvent::class.java
     )

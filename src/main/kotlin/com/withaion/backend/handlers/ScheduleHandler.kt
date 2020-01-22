@@ -63,7 +63,6 @@ class ScheduleHandler(
             ResponseDto::class.java
     )
 
-    // TODO - Implement user assigment and removal
     fun addUser(request: ServerRequest) = request.bodyToMono(AssignUserDto::class.java).flatMap { req ->
         Mono.zip(
                 userRepository.findByEmail(req.email),
