@@ -43,7 +43,9 @@ class EventHandler(
                 }
                 events
             }.flatMap { events ->
-                Flux.fromIterable(EventUtil.expandEvents(events))
+                Flux.fromIterable(events.flatMap {
+                    EventUtil.expandEvents(it.schedules)
+                })
             },
             ScheduledEvent::class.java
     )

@@ -10,6 +10,7 @@ import com.withaion.backend.models.Group
 import com.withaion.backend.models.User
 import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.OktaService
+import com.withaion.backend.utils.EventUtil
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
@@ -100,9 +101,21 @@ class UserHandler(
     fun events(request: ServerRequest) = ServerResponse.ok().body(
             Flux.from(
                     userRepository.findById(request.pathVariable("id"))
-            ).flatMap { user ->
-                Flux.fromIterable(user.groups.flatMap { it.events })
-            }, Event::class.java
+            ).map { user ->
+                val events = mutableListOf<Event>()
+                user.groups.forEach {
+                    events.addAll(it.events)
+                }
+                user.schedules.forEach {
+                    it.event?.let { it1 -> events.add(it1) }
+                }
+                events
+            }.flatMap { events ->
+                Flux.fromIterable(events.flatMap {
+                    EventUtil.expandEvents(it.schedules)
+                })
+            },
+            ScheduledEvent::class.java
     )
 
     fun setEnable(request: ServerRequest) = ServerResponse.ok().body(

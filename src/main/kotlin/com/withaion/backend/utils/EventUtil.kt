@@ -15,11 +15,19 @@ import java.util.*
 
 object EventUtil {
 
-    fun expandEvents(events: List<Event>): List<ScheduledEvent> {
+    fun expandEvents(schedule: Schedule): List<ScheduledEvent> {
         val scheduledEvents = mutableListOf<ScheduledEvent>()
-        events.forEach() { event ->
-            event.schedules.forEach { schedule ->
-                scheduledEvents.addAll(schedule.expand(event))
+        schedule.event?.let {
+            scheduledEvents.addAll(schedule.expand(it))
+        }
+        return scheduledEvents
+    }
+
+    fun expandEvents(schedules: List<Schedule>): List<ScheduledEvent> {
+        val scheduledEvents = mutableListOf<ScheduledEvent>()
+        schedules.forEach { schedule ->
+            schedule.event?.let {
+                scheduledEvents.addAll(schedule.expand(it))
             }
         }
         return scheduledEvents

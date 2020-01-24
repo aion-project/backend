@@ -1,23 +1,19 @@
 package com.withaion.backend.handlers
 
-import com.withaion.backend.data.EventRepository
 import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.ResourceRepository
 import com.withaion.backend.data.ScheduleRepository
-import com.withaion.backend.dto.LocationChangeResourceDto
-import com.withaion.backend.dto.LocationNewDto
-import com.withaion.backend.dto.LocationUpdateDto
-import com.withaion.backend.dto.ResponseDto
+import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.Event
 import com.withaion.backend.models.Location
 import com.withaion.backend.models.Resource
-import com.withaion.backend.models.Schedule
+import com.withaion.backend.utils.EventUtil
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 class LocationHandler(
@@ -68,8 +64,9 @@ class LocationHandler(
     )
 
     fun events(request: ServerRequest) = ServerResponse.ok().body(
-            scheduleRepository.findAllByLocation_Id(request.pathVariable("id")),
-            Schedule::class.java
+            scheduleRepository.findAllByLocation_Id(request.pathVariable("id"))
+                    .flatMap { schedule -> Flux.fromIterable(EventUtil.expandEvents(schedule)) },
+            ScheduledEvent::class.java
     )
 
     fun addResource(request: ServerRequest) = ServerResponse.ok().body(
