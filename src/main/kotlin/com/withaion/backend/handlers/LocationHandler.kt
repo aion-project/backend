@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 class LocationHandler(
         private val locationRepository: LocationRepository,
@@ -67,6 +68,25 @@ class LocationHandler(
             scheduleRepository.findAllByLocation_Id(request.pathVariable("id"))
                     .flatMap { schedule -> Flux.fromIterable(EventUtil.expandEvents(schedule)) },
             ScheduledEvent::class.java
+    )
+
+    fun available(request: ServerRequest) = ServerResponse.ok().body(
+            locationRepository.findAll().filterWhen { location ->
+                val timeParam = request.queryParam("time")
+                if (timeParam.isEmpty) return@filterWhen Mono.just(false)
+
+                val time = LocalDateTime.parse(timeParam.get().substring(0, 19))
+                scheduleRepository.findAllByLocation_Id(location.id!!)
+                        .flatMap { schedule -> Flux.fromIterable(EventUtil.expandEvents(schedule)) }
+                        .any { event ->
+                            (time.isAfter(event.startDateTime) || time.isEqual(event.startDateTime)) &&
+                                    (time.isBefore(event.endDateTime) || time.isEqual(event.endDateTime))
+                        }.map {
+                            !it
+                        }
+            }
+            ,
+            Location::class.java
     )
 
     fun addResource(request: ServerRequest) = ServerResponse.ok().body(

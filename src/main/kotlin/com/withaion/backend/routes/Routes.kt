@@ -46,6 +46,7 @@ val routerBeans = beans {
             "/locations".nest {
                 val handler = LocationHandler(ref(), ref(), ref(), ref())
 
+                GET("/available") { handler.available(it) }
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }
