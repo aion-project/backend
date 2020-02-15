@@ -10,5 +10,6 @@ interface RescheduleRepository : ReactiveMongoRepository<Reschedule, String> {
 
     fun findAllByRequestedBy(user: User): Flux<Reschedule>
     fun findAllByStatus(status: RescheduleStatus): Flux<Reschedule>
+    fun findAllByStatusIn(status: List<RescheduleStatus>): Flux<Reschedule>
 
 }

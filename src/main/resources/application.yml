@@ -15,7 +15,7 @@ okta:
     client-secret: pMrOivyrICs9Z5eYHTl32XE2RdRhngzndav5Fyt2
     scopes: openid
   client:
-    token: 00bD4gBD69X6THNeGdsO1SYt2B5lydDtJ7PEj19gZ2
+    token: 00ePr47i4bM_4MjuqbY_c8fa3v15rvz5n-SpzHe9NB
     org-url: https://dev-107152.okta.com
 
 storage:

@@ -107,6 +107,9 @@ val routerBeans = beans {
 
                 GET("/mine") { handler.getMine(it) }
                 GET("/pending") { handler.getPending() }
+                GET("/reviewed") { handler.getReviewed() }
+                POST("/{id}/accept") { handler.accept(it) }
+                POST("/{id}/decline") { handler.decline(it) }
             }
             "/subjects".nest {
                 val handler = SubjectHandler(ref(), ref())

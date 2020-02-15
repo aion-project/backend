@@ -38,4 +38,25 @@ class RescheduleHandler(
             Reschedule::class.java
     )
 
+    fun getReviewed() = ServerResponse.ok().body(
+            rescheduleRepository.findAllByStatusIn(listOf(RescheduleStatus.ACCEPTED, RescheduleStatus.DECLINED)),
+            Reschedule::class.java
+    )
+
+    fun accept(request: ServerRequest) = ServerResponse.ok().body(
+            rescheduleRepository.findById(request.pathVariable("id")).flatMap {
+                // TODO - Implement reschedule logic
+
+                rescheduleRepository.save(it.copy(status = RescheduleStatus.ACCEPTED))
+            }.map { "Reschedule approved successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun decline(request: ServerRequest) = ServerResponse.ok().body(
+            rescheduleRepository.findById(request.pathVariable("id")).flatMap {
+                rescheduleRepository.save(it.copy(status = RescheduleStatus.DECLINED))
+            }.map { "Reschedule declined successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
 }
