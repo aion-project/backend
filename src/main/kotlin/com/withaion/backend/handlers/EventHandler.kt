@@ -145,12 +145,7 @@ class EventHandler(
                     val user = it.t1
                     val event = it.t2
 
-                    rescheduleRepository.save(rescheduleRequest.toReschedule(event, user)).flatMap { reschedule ->
-                        val rescheduleRequests = ArrayList(event.reschedules)
-                        rescheduleRequests.add(reschedule)
-
-                        eventRepository.save(event.copy(reschedules = rescheduleRequests))
-                    }
+                    rescheduleRepository.save(rescheduleRequest.toReschedule(event, user))
                 }
             }.map { "Reschedule request successful".toResponse() },
             ResponseDto::class.java

@@ -19,7 +19,7 @@ enum class RescheduleType {
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class Reschedule(
         @Id val id: String? = null,
-        @DBRef @JsonBackReference val event: Event? = null,
+        @DBRef val event: Event? = null,
         val oldDateTime: LocalDateTime,
         val newDateTime: LocalDateTime,
         val status: RescheduleStatus = RescheduleStatus.PENDING,

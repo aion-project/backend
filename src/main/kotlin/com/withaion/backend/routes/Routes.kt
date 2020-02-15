@@ -102,6 +102,12 @@ val routerBeans = beans {
                 POST("/{id}/addUser") { handler.addUser(it) }
                 POST("/{id}/removeUser") { handler.removeUser(it) }
             }
+            "/reschedule".nest {
+                val handler = RescheduleHandler(ref(), ref())
+
+                GET("/mine") { handler.getMine(it) }
+                GET("/pending") { handler.getPending() }
+            }
             "/subjects".nest {
                 val handler = SubjectHandler(ref(), ref())
 
