@@ -7,6 +7,7 @@ import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
+import com.withaion.backend.models.Location
 import com.withaion.backend.models.User
 import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.OktaService
@@ -19,6 +20,7 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 class UserHandler(
         private val oktaService: OktaService,
@@ -47,6 +49,33 @@ class UserHandler(
 
     fun search(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findAll(),
+            User::class.java
+    )
+
+    fun available(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findAll().filterWhen { user ->
+                val timeParam = request.queryParam("time")
+                if (timeParam.isEmpty) return@filterWhen Mono.just(false)
+
+                val time = LocalDateTime.parse(timeParam.get().substring(0, 19))
+
+                val events = mutableListOf<Event>()
+                user.groups.forEach {
+                    events.addAll(it.events)
+                }
+                user.schedules.forEach {
+                    it.event?.let { it1 -> events.add(it1) }
+                }
+
+                Flux.fromIterable(events.flatMap {
+                    EventUtil.expandEvents(it.schedules)
+                }).any { event ->
+                    (time.isAfter(event.startDateTime) || time.isEqual(event.startDateTime)) &&
+                            (time.isBefore(event.endDateTime) || time.isEqual(event.endDateTime))
+                }.map {
+                    !it
+                }
+            },
             User::class.java
     )
 

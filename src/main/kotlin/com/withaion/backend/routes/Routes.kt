@@ -26,6 +26,7 @@ val routerBeans = beans {
                 }
 
                 // User endpoints
+                GET("/available") { handler.available(it) }
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 GET("/search") { handler.search(it) }
