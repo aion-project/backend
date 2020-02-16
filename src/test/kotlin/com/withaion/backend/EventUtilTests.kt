@@ -15,9 +15,7 @@ class EventUtilTests {
     @Test
     fun testWeeklyExpanding() {
         println("---- Test Start ----")
-        EventUtil.expandEvents(listOf(weeklyRepeatingEvent)).forEach {
-            println(it.startDateTime.toString() + " " + it.endDateTime.toString())
-        }
+
         println("---- Test End ----")
         assert(true)
     }
@@ -41,22 +39,6 @@ class EventUtilTests {
                                 startDateTime = LocalDateTime.of(2019, 4, 24, 8, 0),
                                 endDateTime = LocalDateTime.of(2019, 4, 24, 10, 0),
                                 repeatType = RepeatType.WEEKLY
-                        )
-                ),
-                reschedules = listOf(
-                        Reschedule(
-                                id = "test",
-                                oldDateTime = LocalDateTime.of(2019, 5, 1, 8, 0),
-                                newDateTime = LocalDateTime.of(2019, 5, 2, 8, 0),
-                                type = RescheduleType.PERM,
-                                status = RescheduleStatus.PENDING
-                        ),
-                        Reschedule(
-                                id = "test",
-                                oldDateTime = LocalDateTime.of(2019, 5, 2, 8, 0),
-                                newDateTime = LocalDateTime.of(2019, 5, 2, 6, 0),
-                                type = RescheduleType.TEMP,
-                                status = RescheduleStatus.PENDING
                         )
                 )
         )
