@@ -64,7 +64,7 @@ class UserHandler(
                     events.addAll(it.events)
                 }
                 user.schedules.forEach {
-                    it.event?.let { it1 -> events.add(it1) }
+                    it?.event?.let { it1 -> events.add(it1) }
                 }
 
                 Flux.fromIterable(events.flatMap {
@@ -136,7 +136,7 @@ class UserHandler(
                     events.addAll(it.events)
                 }
                 user.schedules.forEach {
-                    it.event?.let { it1 -> events.add(it1) }
+                    it?.event?.let { it1 -> events.add(it1) }
                 }
                 events
             }.flatMap { events ->

@@ -1,11 +1,16 @@
 package com.withaion.backend.handlers
 
+import com.mongodb.DBRef
 import com.withaion.backend.data.*
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Event
 import com.withaion.backend.models.Group
+import com.withaion.backend.models.Schedule
 import com.withaion.backend.utils.EventUtil
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
@@ -17,7 +22,8 @@ class EventHandler(
         private val groupRepository: GroupRepository,
         private val scheduleRepository: ScheduleRepository,
         private val userRepository: UserRepository,
-        private val rescheduleRepository: RescheduleRepository
+        private val rescheduleRepository: RescheduleRepository,
+        private val mongoTemplate: ReactiveMongoTemplate
 ) {
 
     fun get(request: ServerRequest) = ServerResponse.ok().body(
@@ -39,7 +45,7 @@ class EventHandler(
                     events.addAll(it.events)
                 }
                 user.schedules.forEach {
-                    it.event?.let { it1 -> events.add(it1) }
+                    it?.event?.let { it1 -> events.add(it1) }
                 }
                 events
             }.flatMap { events ->
@@ -60,10 +66,12 @@ class EventHandler(
     )
 
     fun delete(request: ServerRequest) = ServerResponse.ok().body(
-            Mono.zip(
-                    eventRepository.deleteById(request.pathVariable("id")).thenReturn(true),
-                    scheduleRepository.deleteAllByEvent_Id(request.pathVariable("id")).thenReturn(true)
-            ).map { "Event deleted successfully".toResponse() },
+            eventRepository.findById(request.pathVariable("id")).flatMap { event ->
+                Mono.zip(
+                        eventRepository.delete(event).thenReturn(true),
+                        mongoTemplate.remove(Query.query(Criteria.where("event").`is`(event.id)), Schedule::class.java).thenReturn(true)
+                )
+            }.map { "Event deleted successfully".toResponse() },
             ResponseDto::class.java
     )
 

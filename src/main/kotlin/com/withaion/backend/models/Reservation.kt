@@ -27,7 +27,15 @@ data class Reservation(
         return Event(name = event, description = description)
     }
 
-    fun toSchedule(location: Location, event: Event): Schedule {
-        return Schedule(startDateTime = startDateTime, endDateTime = endDateTime, until = null, repeatType = RepeatType.NONE, location = location, event = event)
+    fun toSchedule(location: Location, event: Event, user: User): Schedule {
+        return Schedule(
+                startDateTime = startDateTime,
+                endDateTime = endDateTime,
+                until = null,
+                repeatType = RepeatType.NONE,
+                location = location,
+                event = event,
+                users = listOf(user)
+        )
     }
 }

@@ -56,7 +56,7 @@ class ReservationHandler(
     )
 
     fun delete(request: ServerRequest) = reservationRepository.findById(request.pathVariable("id")).flatMap {
-        if (it.status == ReservationStatus.ACCEPTED || it.status != ReservationStatus.REVIEWED)
+        if (it.status == ReservationStatus.ACCEPTED || it.status == ReservationStatus.REVIEWED)
             return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
 
         reservationRepository.delete(it).thenReturn(true)
@@ -74,10 +74,17 @@ class ReservationHandler(
             return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
 
         eventRepository.save(reservation.toEvent()).flatMap { event ->
-            val schedules = ArrayList<Schedule>(event.schedules)
-            scheduleRepository.save(reservation.toSchedule(reservation.location!!, event)).flatMap {
+            scheduleRepository.save(reservation.toSchedule(reservation.location!!, event, reservation.requestedBy!!)).flatMap {
+                val schedules = ArrayList<Schedule>(event.schedules)
                 schedules.add(it)
-                eventRepository.save(event.copy(schedules = schedules))
+
+                val userSchedules = ArrayList(reservation.requestedBy.schedules)
+                userSchedules.add(it)
+
+                Mono.zip(
+                        userRepository.save(reservation.requestedBy.copy(schedules = userSchedules)),
+                        eventRepository.save(event.copy(schedules = schedules))
+                )
             }
         }.flatMap {
             reservationRepository.save(reservation.copy(status = ReservationStatus.ACCEPTED))

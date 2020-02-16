@@ -20,6 +20,6 @@ data class User(
         val thumbnailUrl: String? = null,
         val bio: String? = null,
         @DBRef(lazy = true) @JsonManagedReference val groups: List<Group> = listOf(),
-        @DBRef(lazy = true) @JsonBackReference val schedules: List<Schedule> = listOf(),
+        @DBRef(lazy = true) @JsonBackReference val schedules: List<Schedule?> = listOf(),
         @DBRef val location: Location? = null
 )
