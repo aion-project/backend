@@ -108,6 +108,7 @@ val routerBeans = beans {
                 GET("/mine") { handler.getMine(it) }
                 GET("/pending") { handler.getPending() }
                 GET("/reviewed") { handler.getReviewed() }
+                DELETE("/{id}") { handler.delete(it) }
                 POST("/{id}/accept") { handler.accept(it) }
                 POST("/{id}/decline") { handler.decline(it) }
             }
@@ -118,6 +119,7 @@ val routerBeans = beans {
                 GET("/open") { handler.getOpen() }
                 GET("/closed") { handler.getClosed() }
                 POST("/") { handler.create(it) }
+                DELETE("/{id}") { handler.delete(it) }
                 POST("/{id}/accept") { handler.accept(it) }
                 POST("/{id}/review") { handler.review(it) }
                 POST("/{id}/decline") { handler.decline(it) }

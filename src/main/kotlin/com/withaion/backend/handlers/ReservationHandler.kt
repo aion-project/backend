@@ -54,6 +54,20 @@ class ReservationHandler(
             ResponseDto::class.java
     )
 
+    fun delete(request: ServerRequest) = reservationRepository.findById(request.pathVariable("id")).flatMap {
+        if (it.status == ReservationStatus.ACCEPTED || it.status != ReservationStatus.REVIEWED)
+            return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
+
+        reservationRepository.delete(it).thenReturn(true)
+    }.flatMap {
+        ServerResponse.ok().syncBody("Reservation deleted successfully".toResponse())
+    }.onErrorResume {
+        when (it) {
+            is InvalidStateException -> ServerResponse.status(HttpStatus.BAD_REQUEST).syncBody(it.response)
+            else -> it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
+        }
+    }
+
     fun accept(request: ServerRequest) = reservationRepository.findById(request.pathVariable("id")).flatMap {
         if (it.status != ReservationStatus.REVIEWED)
             return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
@@ -61,7 +75,7 @@ class ReservationHandler(
         // TODO - Implement reservation accept logic
         reservationRepository.save(it.copy(status = ReservationStatus.ACCEPTED))
     }.flatMap {
-        ServerResponse.ok().syncBody("Reschedule reviewed successfully".toResponse())
+        ServerResponse.ok().syncBody("Reservation accepted successfully".toResponse())
     }.onErrorResume {
         when (it) {
             is InvalidStateException -> ServerResponse.status(HttpStatus.BAD_REQUEST).syncBody(it.response)
@@ -74,7 +88,7 @@ class ReservationHandler(
             return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
         reservationRepository.save(it.copy(status = ReservationStatus.REVIEWED))
     }.flatMap {
-        ServerResponse.ok().syncBody("Reschedule reviewed successfully".toResponse())
+        ServerResponse.ok().syncBody("Reservation reviewed successfully".toResponse())
     }.onErrorResume {
         when (it) {
             is InvalidStateException -> ServerResponse.status(HttpStatus.BAD_REQUEST).syncBody(it.response)
@@ -88,7 +102,7 @@ class ReservationHandler(
             return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
         reservationRepository.save(it.copy(status = ReservationStatus.DECLINED))
     }.flatMap {
-        ServerResponse.ok().syncBody("Reschedule reviewed successfully".toResponse())
+        ServerResponse.ok().syncBody("Reservation declined successfully".toResponse())
     }.onErrorResume {
         when (it) {
             is InvalidStateException -> ServerResponse.status(HttpStatus.BAD_REQUEST).syncBody(it.response)

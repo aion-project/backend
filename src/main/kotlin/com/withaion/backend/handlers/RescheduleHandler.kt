@@ -7,14 +7,13 @@ import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.ResourceNewDto
 import com.withaion.backend.dto.ResourceUpdateDto
 import com.withaion.backend.dto.ResponseDto
+import com.withaion.backend.exceptions.InvalidStateException
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.Location
-import com.withaion.backend.models.Reschedule
-import com.withaion.backend.models.RescheduleStatus
-import com.withaion.backend.models.Resource
+import com.withaion.backend.models.*
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
+import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
@@ -42,6 +41,20 @@ class RescheduleHandler(
             rescheduleRepository.findAllByStatusIn(listOf(RescheduleStatus.ACCEPTED, RescheduleStatus.DECLINED)),
             Reschedule::class.java
     )
+
+    fun delete(request: ServerRequest) = rescheduleRepository.findById(request.pathVariable("id")).flatMap {
+        if (it.status == RescheduleStatus.ACCEPTED)
+            return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
+
+        rescheduleRepository.delete(it).thenReturn(true)
+    }.flatMap {
+        ServerResponse.ok().syncBody("Reschedule deleted successfully".toResponse())
+    }.onErrorResume {
+        when (it) {
+            is InvalidStateException -> ServerResponse.status(HttpStatus.BAD_REQUEST).syncBody(it.response)
+            else -> it.message?.let { msg -> ServerResponse.badRequest().syncBody(msg.toResponse()) }
+        }
+    }
 
     fun accept(request: ServerRequest) = ServerResponse.ok().body(
             rescheduleRepository.findById(request.pathVariable("id")).flatMap {
