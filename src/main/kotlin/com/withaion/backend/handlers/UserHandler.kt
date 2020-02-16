@@ -55,8 +55,7 @@ class UserHandler(
 
     fun available(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findAll().filterWhen { user ->
-                val timeParam = request.queryParam("time") as Optional
-                if (timeParam.isEmpty()) return@filterWhen Mono.just(false)
+                val timeParam = request.queryParam("time")
 
                 val time = LocalDateTime.parse(timeParam.get().substring(0, 19))
 

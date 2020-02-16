@@ -74,8 +74,7 @@ class LocationHandler(
 
     fun available(request: ServerRequest) = ServerResponse.ok().body(
             locationRepository.findAll().filterWhen { location ->
-                val timeParam = request.queryParam("time") as Optional
-                if (timeParam.isEmpty()) return@filterWhen Mono.just(false)
+                val timeParam = request.queryParam("time")
 
                 val time = LocalDateTime.parse(timeParam.get().substring(0, 19))
                 scheduleRepository.findAllByLocation_Id(location.id!!)
