@@ -16,6 +16,8 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
+import java.util.*
+import kotlin.collections.ArrayList
 
 class LocationHandler(
         private val locationRepository: LocationRepository,
@@ -72,8 +74,8 @@ class LocationHandler(
 
     fun available(request: ServerRequest) = ServerResponse.ok().body(
             locationRepository.findAll().filterWhen { location ->
-                val timeParam = request.queryParam("time")
-                if (timeParam.isEmpty) return@filterWhen Mono.just(false)
+                val timeParam = request.queryParam("time") as Optional
+                if (timeParam.isEmpty()) return@filterWhen Mono.just(false)
 
                 val time = LocalDateTime.parse(timeParam.get().substring(0, 19))
                 scheduleRepository.findAllByLocation_Id(location.id!!)
