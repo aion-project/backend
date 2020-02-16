@@ -1,14 +1,13 @@
 package com.withaion.backend.handlers
 
-import com.withaion.backend.data.LocationRepository
-import com.withaion.backend.data.ReservationRepository
-import com.withaion.backend.data.UserRepository
+import com.withaion.backend.data.*
 import com.withaion.backend.dto.ReservationNewDto
 import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.exceptions.InvalidStateException
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.Reservation
 import com.withaion.backend.models.ReservationStatus
+import com.withaion.backend.models.Schedule
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -19,7 +18,9 @@ import reactor.core.publisher.Mono
 class ReservationHandler(
         private val reservationRepository: ReservationRepository,
         private val userRepository: UserRepository,
-        private val locationRepository: LocationRepository
+        private val locationRepository: LocationRepository,
+        private val eventRepository: EventRepository,
+        private val scheduleRepository: ScheduleRepository
 ) {
 
     fun getMine(request: ServerRequest) = ServerResponse.ok().body(
@@ -68,12 +69,19 @@ class ReservationHandler(
         }
     }
 
-    fun accept(request: ServerRequest) = reservationRepository.findById(request.pathVariable("id")).flatMap {
-        if (it.status != ReservationStatus.REVIEWED)
+    fun accept(request: ServerRequest) = reservationRepository.findById(request.pathVariable("id")).flatMap { reservation ->
+        if (reservation.status != ReservationStatus.REVIEWED)
             return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
 
-        // TODO - Implement reservation accept logic
-        reservationRepository.save(it.copy(status = ReservationStatus.ACCEPTED))
+        eventRepository.save(reservation.toEvent()).flatMap { event ->
+            val schedules = ArrayList<Schedule>(event.schedules)
+            scheduleRepository.save(reservation.toSchedule(reservation.location!!, event)).flatMap {
+                schedules.add(it)
+                eventRepository.save(event.copy(schedules = schedules))
+            }
+        }.flatMap {
+            reservationRepository.save(reservation.copy(status = ReservationStatus.ACCEPTED))
+        }
     }.flatMap {
         ServerResponse.ok().syncBody("Reservation accepted successfully".toResponse())
     }.onErrorResume {

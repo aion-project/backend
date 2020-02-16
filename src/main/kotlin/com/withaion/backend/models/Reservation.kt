@@ -21,4 +21,13 @@ data class Reservation(
         val status: ReservationStatus = ReservationStatus.PENDING,
         @DBRef val location: Location? = null,
         @DBRef val requestedBy: User? = null
-)
+) {
+
+    fun toEvent(): Event {
+        return Event(name = event, description = description)
+    }
+
+    fun toSchedule(location: Location, event: Event): Schedule {
+        return Schedule(startDateTime = startDateTime, endDateTime = endDateTime, until = null, repeatType = RepeatType.NONE, location = location, event = event)
+    }
+}

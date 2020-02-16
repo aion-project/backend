@@ -113,7 +113,7 @@ val routerBeans = beans {
                 POST("/{id}/decline") { handler.decline(it) }
             }
             "/reservation".nest {
-                val handler = ReservationHandler(ref(), ref(), ref())
+                val handler = ReservationHandler(ref(), ref(), ref(), ref(), ref())
 
                 GET("/mine") { handler.getMine(it) }
                 GET("/open") { handler.getOpen() }
