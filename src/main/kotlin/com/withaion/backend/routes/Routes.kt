@@ -115,8 +115,7 @@ val routerBeans = beans {
                 val handler = ReservationHandler(ref(), ref(), ref())
 
                 GET("/mine") { handler.getMine(it) }
-                GET("/pending") { handler.getPending() }
-                GET("/reviewed") { handler.getReviewed() }
+                GET("/open") { handler.getOpen() }
                 GET("/closed") { handler.getClosed() }
                 POST("/") { handler.create(it) }
                 POST("/{id}/accept") { handler.accept(it) }

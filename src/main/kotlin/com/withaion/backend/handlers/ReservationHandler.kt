@@ -29,13 +29,8 @@ class ReservationHandler(
             Reservation::class.java
     )
 
-    fun getPending() = ServerResponse.ok().body(
-            reservationRepository.findAllByStatus(ReservationStatus.PENDING),
-            Reservation::class.java
-    )
-
-    fun getReviewed() = ServerResponse.ok().body(
-            reservationRepository.findAllByStatusIn(listOf(ReservationStatus.REVIEWED)),
+    fun getOpen() = ServerResponse.ok().body(
+            reservationRepository.findAllByStatusIn(listOf(ReservationStatus.PENDING, ReservationStatus.REVIEWED)),
             Reservation::class.java
     )
 
@@ -62,6 +57,8 @@ class ReservationHandler(
     fun accept(request: ServerRequest) = reservationRepository.findById(request.pathVariable("id")).flatMap {
         if (it.status != ReservationStatus.REVIEWED)
             return@flatMap Mono.error<InvalidStateException>(InvalidStateException())
+
+        // TODO - Implement reservation accept logic
         reservationRepository.save(it.copy(status = ReservationStatus.ACCEPTED))
     }.flatMap {
         ServerResponse.ok().syncBody("Reschedule reviewed successfully".toResponse())
