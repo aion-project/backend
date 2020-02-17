@@ -78,7 +78,7 @@ val routerBeans = beans {
                 POST("/{id}/removeUser") { handler.removeUser(it) }
             }
             "/events".nest {
-                val handler = EventHandler(ref(), ref(), ref(), ref(), ref(), ref(), ref())
+                val handler = EventHandler(ref(), ref(), ref(), ref(), ref())
 
                 GET("/mine") { handler.getMine(it) }
                 GET("/{id}") { handler.get(it) }
@@ -90,12 +90,12 @@ val routerBeans = beans {
                 POST("/{id}/removeSubject") { handler.removeSubject(it) }
                 POST("/{id}/addGroup") { handler.addGroup(it) }
                 POST("/{id}/removeGroup") { handler.removeGroup(it) }
-                POST("/{id}/reschedule") { handler.reschedule(it) }
             }
             "/schedule".nest {
-                val handler = ScheduleHandler(ref(), ref(), ref(), ref())
+                val handler = ScheduleHandler(ref(), ref(), ref(), ref(), ref())
 
                 POST("/") { handler.create(it) }
+                POST("/{id}/reschedule") { handler.reschedule(it) }
                 DELETE("/{id}") { handler.delete(it) }
                 POST("/{id}/setLocation") { handler.setLocation(it) }
                 POST("/{id}/removeLocation") { handler.removeLocation(it) }
@@ -103,7 +103,7 @@ val routerBeans = beans {
                 POST("/{id}/removeUser") { handler.removeUser(it) }
             }
             "/reschedule".nest {
-                val handler = RescheduleHandler(ref(), ref())
+                val handler = RescheduleHandler(ref(), ref(), ref())
 
                 GET("/mine") { handler.getMine(it) }
                 GET("/pending") { handler.getPending() }

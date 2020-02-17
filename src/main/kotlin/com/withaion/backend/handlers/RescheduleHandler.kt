@@ -1,15 +1,13 @@
 package com.withaion.backend.handlers
 
-import com.withaion.backend.data.LocationRepository
-import com.withaion.backend.data.RescheduleRepository
-import com.withaion.backend.data.ResourceRepository
-import com.withaion.backend.data.UserRepository
+import com.withaion.backend.data.*
 import com.withaion.backend.dto.ResourceNewDto
 import com.withaion.backend.dto.ResourceUpdateDto
 import com.withaion.backend.dto.ResponseDto
 import com.withaion.backend.exceptions.InvalidStateException
 import com.withaion.backend.extensions.toResponse
 import com.withaion.backend.models.*
+import com.withaion.backend.utils.getEndWith
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
@@ -22,6 +20,7 @@ import reactor.core.publisher.Mono
 
 class RescheduleHandler(
         private val rescheduleRepository: RescheduleRepository,
+        private val scheduleRepository: ScheduleRepository,
         private val userRepository: UserRepository
 ) {
 
@@ -58,9 +57,30 @@ class RescheduleHandler(
 
     fun accept(request: ServerRequest) = ServerResponse.ok().body(
             rescheduleRepository.findById(request.pathVariable("id")).flatMap {
-                // TODO - Implement reschedule logic
-
                 rescheduleRepository.save(it.copy(status = RescheduleStatus.ACCEPTED))
+            }.flatMap {
+                val schedule = it.schedule!!
+
+                return@flatMap if (schedule.repeatType == RepeatType.NONE) {
+                    scheduleRepository.save(it.schedule.copy(
+                            startDateTime = it.newDateTime,
+                            endDateTime = it.newDateTime.getEndWith(schedule.startDateTime, schedule.endDateTime))
+                    ).thenReturn(true)
+                } else if (it.type == RescheduleType.PERM) {
+                    Mono.zip(
+                            scheduleRepository.save(it.schedule.copy(
+                                    until = it.newDateTime.minusHours(1)
+                            )),
+                            scheduleRepository.save(it.schedule.copy(
+                                    id = null,
+                                    startDateTime = it.newDateTime,
+                                    endDateTime = it.newDateTime.getEndWith(schedule.startDateTime, schedule.endDateTime),
+                                    until = schedule.until
+                            ))
+                    ).thenReturn(true)
+                } else {
+                    Mono.just(true)
+                }
             }.map { "Reschedule approved successfully".toResponse() },
             ResponseDto::class.java
     )

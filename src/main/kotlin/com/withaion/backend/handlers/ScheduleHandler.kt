@@ -12,7 +12,8 @@ class ScheduleHandler(
         private val scheduleRepository: ScheduleRepository,
         private val locationRepository: LocationRepository,
         private val eventRepository: EventRepository,
-        private val userRepository: UserRepository
+        private val userRepository: UserRepository,
+        private val rescheduleRepository: RescheduleRepository
 ) {
 
     fun create(request: ServerRequest) = ServerResponse.ok().body(
@@ -28,6 +29,23 @@ class ScheduleHandler(
                     }
                 }
             }.map { "Schedule created successfully".toResponse() },
+            ResponseDto::class.java
+    )
+
+    fun reschedule(request: ServerRequest) = ServerResponse.ok().body(
+            request.bodyToMono(RescheduleRequestDto::class.java).flatMap { rescheduleRequest ->
+                Mono.zip(
+                        request.principal().flatMap { principal -> userRepository.findByEmail(principal.name) },
+                        eventRepository.findById(rescheduleRequest.event),
+                        scheduleRepository.findById(request.pathVariable("id"))
+                ).flatMap {
+                    val user = it.t1
+                    val event = it.t2
+                    val schedule = it.t3
+
+                    rescheduleRepository.save(rescheduleRequest.toReschedule(event, schedule, user))
+                }
+            }.map { "Reschedule request successful".toResponse() },
             ResponseDto::class.java
     )
 

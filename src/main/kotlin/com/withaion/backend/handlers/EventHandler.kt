@@ -1,6 +1,5 @@
 package com.withaion.backend.handlers
 
-import com.mongodb.DBRef
 import com.withaion.backend.data.*
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
@@ -20,9 +19,7 @@ class EventHandler(
         private val eventRepository: EventRepository,
         private val subjectRepository: SubjectRepository,
         private val groupRepository: GroupRepository,
-        private val scheduleRepository: ScheduleRepository,
         private val userRepository: UserRepository,
-        private val rescheduleRepository: RescheduleRepository,
         private val mongoTemplate: ReactiveMongoTemplate
 ) {
 
@@ -144,18 +141,4 @@ class EventHandler(
             ResponseDto::class.java
     )
 
-    fun reschedule(request: ServerRequest) = ServerResponse.ok().body(
-            request.bodyToMono(RescheduleRequestDto::class.java).flatMap { rescheduleRequest ->
-                Mono.zip(
-                        request.principal().flatMap { principal -> userRepository.findByEmail(principal.name) },
-                        eventRepository.findById(request.pathVariable("id"))
-                ).flatMap {
-                    val user = it.t1
-                    val event = it.t2
-
-                    rescheduleRepository.save(rescheduleRequest.toReschedule(event, user))
-                }
-            }.map { "Reschedule request successful".toResponse() },
-            ResponseDto::class.java
-    )
 }

@@ -32,6 +32,7 @@ class EventUpdateDto(
 
 class ScheduledEvent(
         val eventId: String,
+        val scheduleId: String,
         val name: String,
         val startDateTime: LocalDateTime,
         val endDateTime: LocalDateTime

@@ -13,12 +13,16 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.*
 
+fun LocalDateTime.getEndWith(start: LocalDateTime, end: LocalDateTime): LocalDateTime {
+    return this.plusMinutes(ChronoUnit.MINUTES.between(start, end))
+}
+
 object EventUtil {
 
     fun expandEvents(schedule: Schedule): List<ScheduledEvent> {
         val scheduledEvents = mutableListOf<ScheduledEvent>()
         schedule.event?.let {
-            scheduledEvents.addAll(schedule.expand(it))
+            scheduledEvents.addAll(schedule.expand(it, schedule))
         }
         return scheduledEvents
     }
@@ -27,7 +31,7 @@ object EventUtil {
         val scheduledEvents = mutableListOf<ScheduledEvent>()
         schedules.forEach { schedule ->
             schedule.event?.let {
-                scheduledEvents.addAll(schedule.expand(it))
+                scheduledEvents.addAll(schedule.expand(it, schedule))
             }
         }
         return scheduledEvents
@@ -42,28 +46,24 @@ object EventUtil {
         return LocalDateTime.ofInstant(this.toInstant(), ZoneId.systemDefault())
     }
 
-    private fun LocalDateTime.getEndWith(start: LocalDateTime, end: LocalDateTime): LocalDateTime {
-        return this.plusMinutes(ChronoUnit.MINUTES.between(start, end))
-    }
-
-    private fun Schedule.expand(event: Event): List<ScheduledEvent> {
+    private fun Schedule.expand(event: Event, schedule: Schedule): List<ScheduledEvent> {
         return when (this.repeatType) {
             RepeatType.WEEKLY -> {
                 val until = this.until ?: this.startDateTime.plusMonths(1)
-                genEvents(this.startDateTime, this.endDateTime, until, event, Frequency.WEEKLY)
+                genEvents(this.startDateTime, this.endDateTime, until, event, schedule, Frequency.WEEKLY)
             }
             RepeatType.DAILY -> {
                 val until = this.until ?: this.startDateTime.plusMonths(1)
-                genEvents(this.startDateTime, this.endDateTime, until, event, Frequency.DAILY)
+                genEvents(this.startDateTime, this.endDateTime, until, event, schedule, Frequency.DAILY)
             }
             RepeatType.NONE -> {
-                listOf(ScheduledEvent(eventId = event.id!!, name = event.name, startDateTime = this.startDateTime, endDateTime = this.endDateTime))
+                listOf(ScheduledEvent(eventId = event.id!!, scheduleId = schedule.id!!, name = event.name, startDateTime = this.startDateTime, endDateTime = this.endDateTime))
             }
         }
     }
 
     // Private functions
-    private fun genEvents(start: LocalDateTime, end: LocalDateTime, until: LocalDateTime, event: Event, freq: Frequency): List<ScheduledEvent> {
+    private fun genEvents(start: LocalDateTime, end: LocalDateTime, until: LocalDateTime, event: Event, schedule: Schedule, freq: Frequency): List<ScheduledEvent> {
         val events = mutableListOf<ScheduledEvent>()
 
         val vEvent = VEvent()
@@ -77,7 +77,7 @@ object EventUtil {
             val nextInstanceStart = iterator.next().toLocalDateTime()
             val nextInstanceEnd = nextInstanceStart.getEndWith(start, end)
 
-            events.add(ScheduledEvent(eventId = event.id!!, name = event.name, startDateTime = nextInstanceStart, endDateTime = nextInstanceEnd))
+            events.add(ScheduledEvent(eventId = event.id!!, scheduleId = schedule.id!!, name = event.name, startDateTime = nextInstanceStart, endDateTime = nextInstanceEnd))
         }
         return events
     }
