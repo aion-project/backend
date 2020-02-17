@@ -5,10 +5,7 @@ import com.withaion.backend.data.LocationRepository
 import com.withaion.backend.data.UserRepository
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.Event
-import com.withaion.backend.models.Group
-import com.withaion.backend.models.Location
-import com.withaion.backend.models.User
+import com.withaion.backend.models.*
 import com.withaion.backend.services.ImageService
 import com.withaion.backend.services.OktaService
 import com.withaion.backend.utils.EventUtil
@@ -48,28 +45,21 @@ class UserHandler(
             User::class.java
     )
 
-    fun search(request: ServerRequest) = ServerResponse.ok().body(
-            userRepository.findAll(),
-            User::class.java
-    )
-
     fun available(request: ServerRequest) = ServerResponse.ok().body(
             userRepository.findAll().filterWhen { user ->
                 val timeParam = request.queryParam("time")
 
                 val time = LocalDateTime.parse(timeParam.get().substring(0, 19))
 
-                val events = mutableListOf<Event>()
+                val schedules = mutableListOf<Schedule>()
                 user.groups.forEach {
-                    events.addAll(it.events)
+                    schedules.addAll(it.events.flatMap { event -> event.schedules })
                 }
-                user.schedules.forEach {
-                    it?.event?.let { it1 -> events.add(it1) }
-                }
+                schedules.addAll(user.schedules.filterNotNull())
 
-                Flux.fromIterable(events.flatMap {
-                    EventUtil.expandEvents(it.schedules)
-                }).any { event ->
+                Flux.fromIterable(
+                    EventUtil.expandEvents(schedules = schedules)
+                ).any { event ->
                     (time.isAfter(event.startDateTime) || time.isEqual(event.startDateTime)) &&
                             (time.isBefore(event.endDateTime) || time.isEqual(event.endDateTime))
                 }.map {

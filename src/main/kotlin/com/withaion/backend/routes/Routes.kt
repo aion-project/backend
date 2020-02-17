@@ -29,7 +29,6 @@ val routerBeans = beans {
                 GET("/available") { handler.available(it) }
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
-                GET("/search") { handler.search(it) }
                 POST("/") { handler.create(it) }
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
