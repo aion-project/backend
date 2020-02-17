@@ -2,6 +2,9 @@ package com.withaion.backend.dto
 
 import com.withaion.backend.models.Subject
 import java.awt.Color
+import java.lang.Integer.max
+import java.util.*
+
 
 /**
  * DTO for subject creation requests
@@ -18,8 +21,14 @@ data class SubjectNewDto(
     }
 
     private fun getRandomColor(): String {
-        val color = Color((Math.random() * 0x1000000).toInt())
-        return "#"+Integer.toHexString(color.rgb).substring(2);
+        val rand = Random()
+
+        val redValue = max(150, rand.nextInt(255))
+        val greenValue = max(150, rand.nextInt(255))
+        val blueValue = max(150, rand.nextInt(255))
+
+        val color = Color(redValue, greenValue, blueValue)
+        return "#"+Integer.toHexString(color.rgb).substring(2)
     }
 }
 

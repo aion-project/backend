@@ -35,5 +35,6 @@ class ScheduledEvent(
         val scheduleId: String,
         val name: String,
         val startDateTime: LocalDateTime,
-        val endDateTime: LocalDateTime
+        val endDateTime: LocalDateTime,
+        val color: String?
 )

@@ -57,7 +57,7 @@ object EventUtil {
                 genEvents(this.startDateTime, this.endDateTime, until, event, schedule, Frequency.DAILY)
             }
             RepeatType.NONE -> {
-                listOf(ScheduledEvent(eventId = event.id!!, scheduleId = schedule.id!!, name = event.name, startDateTime = this.startDateTime, endDateTime = this.endDateTime))
+                listOf(ScheduledEvent(eventId = event.id!!, scheduleId = schedule.id!!, name = event.name, startDateTime = this.startDateTime, endDateTime = this.endDateTime, color = event.subject?.color))
             }
         }
     }
@@ -77,7 +77,7 @@ object EventUtil {
             val nextInstanceStart = iterator.next().toLocalDateTime()
             val nextInstanceEnd = nextInstanceStart.getEndWith(start, end)
 
-            events.add(ScheduledEvent(eventId = event.id!!, scheduleId = schedule.id!!, name = event.name, startDateTime = nextInstanceStart, endDateTime = nextInstanceEnd))
+            events.add(ScheduledEvent(eventId = event.id!!, scheduleId = schedule.id!!, name = event.name, startDateTime = nextInstanceStart, endDateTime = nextInstanceEnd, color = event.subject?.color))
         }
         return events
     }
