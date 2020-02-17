@@ -3,9 +3,7 @@ package com.withaion.backend.handlers
 import com.withaion.backend.data.*
 import com.withaion.backend.dto.*
 import com.withaion.backend.extensions.toResponse
-import com.withaion.backend.models.Event
-import com.withaion.backend.models.Group
-import com.withaion.backend.models.Schedule
+import com.withaion.backend.models.*
 import com.withaion.backend.utils.EventUtil
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
@@ -66,7 +64,9 @@ class EventHandler(
             eventRepository.findById(request.pathVariable("id")).flatMap { event ->
                 Mono.zip(
                         eventRepository.delete(event).thenReturn(true),
-                        mongoTemplate.remove(Query.query(Criteria.where("event").`is`(event.id)), Schedule::class.java).thenReturn(true)
+                        mongoTemplate.remove(Query.query(Criteria.where("event").`is`(event.id)), Schedule::class.java).thenReturn(true),
+                        mongoTemplate.remove(Query.query(Criteria.where("event").`is`(event.id)), Reschedule::class.java).thenReturn(true),
+                        mongoTemplate.remove(Query.query(Criteria.where("event").`is`(event.id)), Reservation::class.java).thenReturn(true)
                 )
             }.map { "Event deleted successfully".toResponse() },
             ResponseDto::class.java
