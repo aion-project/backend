@@ -7,5 +7,6 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class Subject(
         @Id val id: String? = null,
         val name: String,
-        val description: String?
+        val description: String?,
+        val color: String
 )

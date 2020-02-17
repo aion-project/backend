@@ -1,6 +1,7 @@
 package com.withaion.backend.dto
 
 import com.withaion.backend.models.Subject
+import java.awt.Color
 
 /**
  * DTO for subject creation requests
@@ -13,7 +14,12 @@ data class SubjectNewDto(
         val description: String?
 ) {
     fun toSubject(): Subject {
-        return Subject(name = name, description = description)
+        return Subject(name = name, description = description, color = getRandomColor())
+    }
+
+    private fun getRandomColor(): String {
+        val color = Color((Math.random() * 0x1000000).toInt())
+        return "#"+Integer.toHexString(color.rgb).substring(2);
     }
 }
 

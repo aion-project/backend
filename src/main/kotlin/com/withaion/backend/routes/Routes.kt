@@ -39,6 +39,17 @@ val routerBeans = beans {
                 POST("/{id}/setLocation") { handler.setLocation(it) }
                 POST("/{id}/removeLocation") { handler.removeLocation(it) }
             }
+            "/groups".nest {
+                val handler = GroupHandler(ref(), ref(), ref())
+
+                GET("/{id}") { handler.get(it) }
+                GET("/") { handler.getAll() }
+                POST("/") { handler.create(it) }
+                PUT("/{id}") { handler.update(it) }
+                DELETE("/{id}") { handler.delete(it) }
+                POST("/{id}/addUser") { handler.addUser(it) }
+                POST("/{id}/removeUser") { handler.removeUser(it) }
+            }
             "/roles".nest {
                 val handler = RoleHandler(ref())
                 GET("") { handler.getAll() }
@@ -65,17 +76,6 @@ val routerBeans = beans {
                 PUT("/{id}") { handler.update(it) }
                 DELETE("/{id}") { handler.delete(it) }
             }
-            "/groups".nest {
-                val handler = GroupHandler(ref(), ref(), ref())
-
-                GET("/{id}") { handler.get(it) }
-                GET("/") { handler.getAll() }
-                POST("/") { handler.create(it) }
-                PUT("/{id}") { handler.update(it) }
-                DELETE("/{id}") { handler.delete(it) }
-                POST("/{id}/addUser") { handler.addUser(it) }
-                POST("/{id}/removeUser") { handler.removeUser(it) }
-            }
             "/events".nest {
                 val handler = EventHandler(ref(), ref(), ref(), ref(), ref())
 
@@ -101,6 +101,15 @@ val routerBeans = beans {
                 POST("/{id}/addUser") { handler.addUser(it) }
                 POST("/{id}/removeUser") { handler.removeUser(it) }
             }
+            "/subjects".nest {
+                val handler = SubjectHandler(ref(), ref())
+
+                GET("/{id}") { handler.get(it) }
+                GET("/") { handler.getAll() }
+                POST("/") { handler.create(it) }
+                PUT("/{id}") { handler.update(it) }
+                DELETE("/{id}") { handler.delete(it) }
+            }
             "/reschedule".nest {
                 val handler = RescheduleHandler(ref(), ref(), ref())
 
@@ -122,15 +131,6 @@ val routerBeans = beans {
                 POST("/{id}/accept") { handler.accept(it) }
                 POST("/{id}/review") { handler.review(it) }
                 POST("/{id}/decline") { handler.decline(it) }
-            }
-            "/subjects".nest {
-                val handler = SubjectHandler(ref(), ref())
-
-                GET("/{id}") { handler.get(it) }
-                GET("/") { handler.getAll() }
-                POST("/") { handler.create(it) }
-                PUT("/{id}") { handler.update(it) }
-                DELETE("/{id}") { handler.delete(it) }
             }
         }
     }
