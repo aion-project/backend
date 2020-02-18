@@ -1,8 +1,6 @@
 package com.withaion.backend.dto
 
-import com.withaion.backend.models.Event
-import com.withaion.backend.models.RepeatType
-import com.withaion.backend.models.Schedule
+import com.withaion.backend.models.*
 import java.time.LocalDateTime
 
 class EventNewDto(
@@ -36,5 +34,7 @@ class ScheduledEvent(
         val name: String,
         val startDateTime: LocalDateTime,
         val endDateTime: LocalDateTime,
-        val color: String?
+        val color: String?,
+        val location: Location,
+        val users: List<User?> = listOf()
 )
