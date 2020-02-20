@@ -16,10 +16,20 @@ data class SubjectNewDto(
         val name: String,
         val description: String?
 ) {
+    /**
+     * toSubject
+     *
+     * Utility function to create subject object from this dto
+     */
     fun toSubject(): Subject {
         return Subject(name = name, description = description, color = getRandomColor())
     }
 
+    /**
+     * getRandomColor
+     *
+     * Utility function to generate a random color
+     */
     private fun getRandomColor(): String {
         val rand = Random()
 
@@ -42,6 +52,13 @@ data class SubjectUpdateDto(
         val name: String?,
         val description: String?
 ) {
+    /**
+     * toUpdatedSubject
+     *
+     * Utility function to update existing subject object with data of this dto
+     *
+     * @param subject - Object of existing subject object to be updated
+     */
     fun toUpdatedSubject(subject: Subject): Subject {
         var currentSubject = subject
         name?.let {
