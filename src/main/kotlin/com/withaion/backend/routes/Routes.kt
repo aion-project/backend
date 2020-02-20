@@ -27,6 +27,7 @@ val routerBeans = beans {
 
                 // User endpoints
                 GET("/available") { handler.available(it) }
+                GET("/count") { handler.count() }
                 GET("/{id}") { handler.get(it) }
                 GET("/") { handler.getAll() }
                 POST("/") { handler.create(it) }

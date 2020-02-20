@@ -40,6 +40,11 @@ class UserHandler(
             User::class.java
     )
 
+    fun count() = ServerResponse.ok().body(
+            userRepository.count(),
+            Long::class.java
+    )
+
     fun getAll() = ServerResponse.ok().body(
             userRepository.findAll(),
             User::class.java
